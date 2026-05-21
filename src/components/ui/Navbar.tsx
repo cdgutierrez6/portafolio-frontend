@@ -84,8 +84,10 @@ export default function Navbar({ locale, initials = "P" }: NavbarProps) {
     >
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
         <Link href={`/${locale}`} style={{ textDecoration: "none", flexShrink: 0 }} className="nav-logo">
-          <span style={{ fontSize: "1.4rem", fontWeight: 800, background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "0.05em" }}>
-            {initials}
+          <span style={{ fontFamily: "'Courier New', Courier, monospace", fontWeight: 900, fontSize: "1.25rem", letterSpacing: "-0.02em", display: "flex", alignItems: "baseline", gap: "1px" }}>
+            <span style={{ color: "var(--color-accent)", opacity: 0.85 }}>&lt;</span>
+            <span style={{ background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>CDG</span>
+            <span style={{ color: "var(--color-accent)", opacity: 0.85 }}>/&gt;</span>
           </span>
         </Link>
 

@@ -56,6 +56,7 @@ export default function LocaleLayout({
   return (
     <html lang={locale}>
       <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <style dangerouslySetInnerHTML={{ __html: cssVars }} />
       </head>
       <body>
