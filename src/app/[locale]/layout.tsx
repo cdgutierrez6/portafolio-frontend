@@ -9,7 +9,7 @@ export async function generateStaticParams() {
   return [{ locale: "es" }, { locale: "en" }];
 }
 
-const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://portafolio-frontend.vercel.app";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://portafolio-frontend-wheat.vercel.app";
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   const locale = params.locale === "en" ? "en" : "es";
