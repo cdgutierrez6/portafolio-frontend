@@ -28,8 +28,8 @@ export const portfolioData: PortfolioData = {
     phone: "320-617-4143",
     location: "Manizales, Caldas, Colombia",
     photoUrl: null,
-    githubUrl: null,
-    linkedinUrl: null,
+    githubUrl: "https://github.com/cdgutierrez6",
+    linkedinUrl: "https://www.linkedin.com/in/cristian-daniel-guti%C3%A9rrez-segura",
     cvUrl: null,
   },
   experiences: [
