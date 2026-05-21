@@ -6,7 +6,7 @@ import { useReveal } from "@/hooks/useReveal";
 
 interface Props {
   personal: { name: string; email: string; phone: string; location: string; githubUrl: string | null; linkedinUrl: string | null };
-  t: { contact: { title: string; send: string; name: string; message: string; subject: string } };
+  t: { contact: { title: string; send: string; name: string; message: string; subject: string; phone: string; location: string; email: string; placeholderName: string; placeholderEmail: string; placeholderSubject: string; placeholderMessage: string } };
   animated: boolean;
 }
 
@@ -41,9 +41,9 @@ export default function Contact({ personal, t, animated }: Props) {
   };
 
   const contacts = [
-    { icon: "📧", label: "Email",     value: personal.email,    href: null,               copy: true  },
-    { icon: "📱", label: "Teléfono",  value: personal.phone,    href: null,               copy: true  },
-    { icon: "📍", label: "Ubicación", value: personal.location, href: null,               copy: false },
+    { icon: "📧", label: t.contact.email,    value: personal.email,    href: null, copy: true  },
+    { icon: "📱", label: t.contact.phone,    value: personal.phone,    href: null, copy: true  },
+    { icon: "📍", label: t.contact.location, value: personal.location, href: null, copy: false },
     ...(personal.githubUrl   ? [{ icon: "🐙", label: "GitHub",   value: personal.githubUrl,   href: personal.githubUrl,   copy: false }] : []),
     ...(personal.linkedinUrl ? [{ icon: "💼", label: "LinkedIn", value: personal.linkedinUrl, href: personal.linkedinUrl, copy: false }] : []),
   ];
@@ -63,19 +63,19 @@ export default function Contact({ personal, t, animated }: Props) {
             <form onSubmit={handleSubmit} aria-label={t.contact.send} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
               <div>
                 <label style={{ fontSize: "0.78rem", opacity: 0.6, display: "block", marginBottom: "0.3rem", fontWeight: 600 }}>{t.contact.name}</label>
-                <input className="admin-input" value={form.senderName} onChange={(e) => setForm(f => ({ ...f, senderName: e.target.value }))} required placeholder="Tu nombre" />
+                <input className="admin-input" value={form.senderName} onChange={(e) => setForm(f => ({ ...f, senderName: e.target.value }))} required placeholder={t.contact.placeholderName} />
               </div>
               <div>
-                <label style={{ fontSize: "0.78rem", opacity: 0.6, display: "block", marginBottom: "0.3rem", fontWeight: 600 }}>Email</label>
-                <input className="admin-input" type="email" value={form.senderEmail} onChange={(e) => setForm(f => ({ ...f, senderEmail: e.target.value }))} required placeholder="tu@email.com" />
+                <label style={{ fontSize: "0.78rem", opacity: 0.6, display: "block", marginBottom: "0.3rem", fontWeight: 600 }}>{t.contact.email}</label>
+                <input className="admin-input" type="email" value={form.senderEmail} onChange={(e) => setForm(f => ({ ...f, senderEmail: e.target.value }))} required placeholder={t.contact.placeholderEmail} />
               </div>
               <div>
                 <label style={{ fontSize: "0.78rem", opacity: 0.6, display: "block", marginBottom: "0.3rem", fontWeight: 600 }}>{t.contact.subject}</label>
-                <input className="admin-input" value={form.subject} onChange={(e) => setForm(f => ({ ...f, subject: e.target.value }))} required placeholder="Asunto del mensaje" />
+                <input className="admin-input" value={form.subject} onChange={(e) => setForm(f => ({ ...f, subject: e.target.value }))} required placeholder={t.contact.placeholderSubject} />
               </div>
               <div>
                 <label style={{ fontSize: "0.78rem", opacity: 0.6, display: "block", marginBottom: "0.3rem", fontWeight: 600 }}>{t.contact.message}</label>
-                <textarea className="admin-input" value={form.message} onChange={(e) => setForm(f => ({ ...f, message: e.target.value }))} required rows={5} placeholder="Escribe tu mensaje aquí..." style={{ resize: "vertical" }} />
+                <textarea className="admin-input" value={form.message} onChange={(e) => setForm(f => ({ ...f, message: e.target.value }))} required rows={5} placeholder={t.contact.placeholderMessage} style={{ resize: "vertical" }} />
               </div>
               <button type="submit" className={`btn-primary${animated && !sending ? " btn-shimmer" : ""}`} disabled={sending} style={{ justifyContent: "center", opacity: sending ? 0.7 : 1, cursor: sending ? "not-allowed" : "pointer" }}>
                 {sending ? "⏳ Enviando..." : `📤 ${t.contact.send}`}

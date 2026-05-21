@@ -10,7 +10,7 @@ interface Props {
 }
 
 const stats = [
-  { value: "12+", keyEs: "años de experiencia", keyEn: "years of experience" },
+  { value: "15+", keyEs: "años de experiencia", keyEn: "years of experience" },
   { value: "9",   keyEs: "empresas",             keyEn: "companies"           },
   { value: "20+", keyEs: "tecnologías",           keyEn: "technologies"        },
 ];

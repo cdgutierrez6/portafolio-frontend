@@ -16,14 +16,14 @@ export const portfolioData: PortfolioData = {
   personalInfo: {
     nameEs: "Cristian Daniel Gutiérrez S.",
     nameEn: "Cristian Daniel Gutiérrez S.",
-    titleEs: "Desarrollador de Software Senior",
-    titleEn: "Senior Software Developer",
+    titleEs: "Solutions Architect & Senior Full-Stack Engineer",
+    titleEn: "Solutions Architect & Senior Full-Stack Engineer",
     bioEs:
-      "Senior Full-Stack Software Engineer con más de 12 años de experiencia liderando la arquitectura y el desarrollo de microservicios escalables en ecosistemas .NET Core, Java y Node.js. Historial demostrado en la construcción de aplicaciones web dinámicas y de alto rendimiento con React y Angular. Comprometido con estándares rigurosos de calidad de código y la entrega de soluciones empresariales robustas y mantenibles.",
+      "Solutions Architect y Senior Full-Stack Engineer con más de 15 años de experiencia liderando la arquitectura de microservicios escalables en ecosistemas .NET Core, Java y Node.js. Me especializo en el diseño de infraestructuras backend robustas y aplicaciones web de alto rendimiento (Angular/React) manteniendo rigurosos estándares de Clean Code y SOLID. Actualmente enfocado en la construcción de ecosistemas de automatización B2B e integración de tecnologías de IA de vanguardia (LLMs, agentes autónomos) para maximizar la eficiencia empresarial.",
     bioEn:
-      "Senior Full-Stack Software Engineer with 12+ years of experience driving the architecture and development of scalable microservices across .NET Core, Java, and Node.js ecosystems. Demonstrated success in engineering dynamic, high-performance web applications leveraging React and Angular. Proven track record of upholding rigorous code quality standards and delivering robust, maintainable enterprise software solutions.",
-    headlineEs: "12 años de experiencia  ·  9 empresas  ·  Arquitecto de Microservicios  ·  IA Engineer",
-    headlineEn: "12 years of experience  ·  9 companies  ·  Microservices Architect  ·  AI Engineer",
+      "Solutions Architect and Senior Full-Stack Engineer with 15+ years of experience driving the architecture of scalable microservices across .NET Core, Java, and Node.js ecosystems. I specialize in designing robust backend infrastructures and high-performance web applications (Angular/React) while upholding rigorous Clean Code and SOLID standards. Currently focused on engineering B2B automation ecosystems and integrating cutting-edge AI technologies (LLMs, autonomous agents) to maximize enterprise efficiency.",
+    headlineEs: "15+ años de experiencia  ·  9 empresas  ·  Solutions Architect  ·  AI Engineer",
+    headlineEn: "15+ years of experience  ·  9 companies  ·  Solutions Architect  ·  AI Engineer",
     email: "cdgutierrez6@gmail.com",
     phone: "320-617-4143",
     location: "Manizales, Caldas, Colombia",
@@ -35,13 +35,13 @@ export const portfolioData: PortfolioData = {
   experiences: [
     {
       company: "SATRACK",
-      roleEs: "Desarrollador 2",
-      roleEn: "Developer 2",
+      roleEs: "Senior Software Engineer",
+      roleEn: "Senior Software Engineer",
       descriptionEs:
-        "Nuevas implementaciones y soporte a sistemas en producción. Desarrollo de microservicios con arquitectura escalable usando Docker y microfrontends.",
+        "Lideré la evolución y escalabilidad del núcleo tecnológico de sistemas de telemetría y rastreo vehicular, gestionando datos transaccionales masivos en tiempo real. Diseñé arquitecturas backend robustas y microservicios (.NET/Java) aplicando estrictamente principios SOLID y Clean Architecture. Implementé streams de datos en tiempo real con Apache Kafka y optimicé bases de datos NoSQL/SQL para consultas de geolocalización. Contenerización de servicios con Docker y gestión de pipelines CI/CD en Azure DevOps.",
       descriptionEn:
-        "New implementations and support for production systems. Development of microservices with scalable architecture using Docker and microfrontends.",
-      technologies: ["Microservices", "Angular 8", "C#", "SQL Server", "Docker", "Microfrontends"],
+        "Led the evolution and scalability of the technological core for vehicle telemetry and tracking systems, managing massive real-time transactional data. Designed robust backend architectures and microservices (.NET/Java) strictly applying SOLID principles and Clean Architecture. Implemented real-time data streams via Apache Kafka and optimized NoSQL/SQL databases for geolocation queries. Containerized services (Docker) and managed CI/CD pipelines (Azure DevOps).",
+      technologies: ["Microservices", "Angular", ".NET Core", "Java", "Apache Kafka", "Docker", "Azure DevOps", "Clean Architecture", "SOLID"],
       startDate: "Sep 2022",
       endDate: "Nov 2025",
       current: false,
@@ -51,10 +51,10 @@ export const portfolioData: PortfolioData = {
       roleEs: "Analista Sr. / Desarrollador de Software",
       roleEn: "Sr. Analyst / Software Developer",
       descriptionEs:
-        "Nuevas implementaciones y soporte a sistemas en producción y próximos a producción. Trabajo con arquitectura de microservicios y microfrontends.",
+        "Desarrollé nuevas funcionalidades y brindé soporte de alto nivel a sistemas críticos de producción. Diseñé y mantuve microservicios y microfrontends escalables (Angular 8, .NET Core), mejorando significativamente el rendimiento y la modularidad del sistema.",
       descriptionEn:
-        "New implementations and support for systems in production and near production. Work with microservices and microfrontends architecture.",
-      technologies: ["Microservices", "Angular 8", "C#", "SQL Server", "Docker"],
+        "Engineered new features and provided high-level support for mission-critical production systems. Architected and maintained scalable microservices and microfrontends (Angular 8, .NET Core), significantly improving system performance and modularity.",
+      technologies: ["Microservices", "Microfrontends", "Angular 8", ".NET Core", "C#", "SQL Server", "Docker"],
       startDate: "Feb 2022",
       endDate: "Ago 2022",
       current: false,
@@ -64,10 +64,10 @@ export const portfolioData: PortfolioData = {
       roleEs: "Analista Sr. / Desarrollador de Software",
       roleEn: "Sr. Analyst / Software Developer",
       descriptionEs:
-        "Nuevas implementaciones y soporte a sistemas en producción. Arquitectura de microservicios con Docker y desarrollo de microfrontends en Angular.",
+        "Lideré el diseño y despliegue de nuevas implementaciones para entornos de producción empresarial. Desarrollé una arquitectura de microservicios escalable utilizando contenerización con Docker y construí microfrontends dinámicos con Angular, garantizando alta disponibilidad.",
       descriptionEn:
-        "New implementations and support for production systems. Microservices architecture with Docker and microfrontends development in Angular.",
-      technologies: ["Microservices", "Angular 8", "C#", "SQL Server", "Docker", "Microfrontends"],
+        "Spearheaded the design and deployment of new implementations for enterprise production environments. Developed a scalable microservices architecture utilizing Docker containerization and built dynamic microfrontends with Angular, ensuring high availability.",
+      technologies: ["Microservices", "Microfrontends", "Angular 8", "C#", "SQL Server", "Docker"],
       startDate: "Jul 2021",
       endDate: "Dic 2021",
       current: false,
@@ -77,10 +77,10 @@ export const portfolioData: PortfolioData = {
       roleEs: "Desarrollador de Software",
       roleEn: "Software Developer",
       descriptionEs:
-        "Nuevas implementaciones y soporte a sistemas en producción. Desarrollo full-stack con múltiples tecnologías modernas.",
+        "Desarrollé soluciones full-stack utilizando un stack tecnológico moderno para entregar sistemas robustos de producción. Implementé lógica de negocio compleja y componentes de UI utilizando React.js, Angular, Node.js y Adonis.js, respaldados por bases de datos MySQL y SQL Server optimizadas.",
       descriptionEn:
-        "New implementations and support for production systems. Full-stack development with multiple modern technologies.",
-      technologies: ["Adonis.js", "React.js", "MySQL", "SQL Server", "Angular", "Node.js"],
+        "Executed full-stack development using a modern technology stack to deliver robust production systems. Implemented complex business logic and UI components utilizing React.js, Angular, Node.js, and Adonis.js, backed by optimized MySQL and SQL Server databases.",
+      technologies: ["React.js", "Angular", "Node.js", "Adonis.js", "MySQL", "SQL Server"],
       startDate: "Mar 2020",
       endDate: "Ene 2021",
       current: false,
@@ -90,10 +90,10 @@ export const portfolioData: PortfolioData = {
       roleEs: "Desarrollador Web",
       roleEn: "Web Developer",
       descriptionEs:
-        "Desarrollo de aplicaciones para call center para medir tiempos de llamadas y horas laborales. Proyecto con la Gobernación de Cundinamarca para la página de la economía naranja.",
+        "Desarrollé aplicaciones especializadas para call center orientadas al seguimiento de métricas y horas operativas. Contribuí de forma clave en una iniciativa para la Gobernación de Cundinamarca (Proyecto Economía Naranja), entregando soluciones escalables con .NET Core, Java, Angular y bases de datos Oracle.",
       descriptionEn:
-        "Development of call center applications to measure call times and working hours. Project with the Cundinamarca Government for the orange economy page.",
-      technologies: ["C#", ".NET Core", "Oracle", "Java", "Angular", "MySQL", "Node.js"],
+        "Developed specialized call center applications to track metrics and operational hours. Key contributor to a major initiative for the Cundinamarca Government (Orange Economy project), delivering scalable solutions utilizing .NET Core, Java, Angular, and Oracle databases.",
+      technologies: [".NET Core", "Java", "Angular", "Oracle", "MySQL", "Node.js"],
       startDate: "Jul 2018",
       endDate: "Ene 2019",
       current: false,
@@ -103,10 +103,10 @@ export const portfolioData: PortfolioData = {
       roleEs: "Desarrollador de Software",
       roleEn: "Software Developer",
       descriptionEs:
-        "Programación de aplicativos de la empresa. Desarrollo multiplataforma con Cordova y aplicaciones web con Angular y .NET Core.",
+        "Construí aplicaciones corporativas internas completas. Entregué soluciones móviles multiplataforma usando Cordova y desarrollé aplicaciones web robustas aprovechando Angular y servicios backend .NET Core (MVC/SQL Server).",
       descriptionEn:
-        "Development of company applications. Cross-platform development with Cordova and web applications with Angular and .NET Core.",
-      technologies: ["C#", "SQL Server", "MVC", "Cordova", "Angular", ".NET Core"],
+        "Built comprehensive internal corporate applications. Delivered cross-platform mobile solutions using Cordova and engineered robust web applications leveraging Angular and .NET Core backend services (MVC/SQL Server).",
+      technologies: ["Angular", ".NET Core", "C#", "Cordova", "MVC", "SQL Server"],
       startDate: "Nov 2016",
       endDate: "Feb 2018",
       current: false,

@@ -132,7 +132,12 @@ export const i18n = {
     experience: { title: "Experiencia Laboral", present: "Presente", technologies: "Tecnologías" },
     skills: { title: "Habilidades Técnicas" },
     education: { title: "Educación & Formación", courses: "Cursos & Certificaciones", hours: "horas" },
-    contact: { title: "Contacto", send: "Enviar mensaje", name: "Nombre", message: "Mensaje", subject: "Asunto" },
+    contact: {
+      title: "Contacto", send: "Enviar mensaje", name: "Nombre", message: "Mensaje", subject: "Asunto",
+      phone: "TELÉFONO", location: "UBICACIÓN", email: "EMAIL",
+      placeholderName: "Tu nombre", placeholderEmail: "tu@email.com",
+      placeholderSubject: "Asunto del mensaje", placeholderMessage: "Escribe tu mensaje aquí...",
+    },
     footer: { rights: "Todos los derechos reservados." },
   },
   en: {
@@ -153,7 +158,12 @@ export const i18n = {
     experience: { title: "Work Experience", present: "Present", technologies: "Technologies" },
     skills: { title: "Technical Skills" },
     education: { title: "Education & Training", courses: "Courses & Certifications", hours: "hours" },
-    contact: { title: "Contact", send: "Send message", name: "Name", message: "Message", subject: "Subject" },
+    contact: {
+      title: "Contact", send: "Send message", name: "Name", message: "Message", subject: "Subject",
+      phone: "PHONE", location: "LOCATION", email: "EMAIL",
+      placeholderName: "Your name", placeholderEmail: "your@email.com",
+      placeholderSubject: "Subject", placeholderMessage: "Write your message here...",
+    },
     footer: { rights: "All rights reserved." },
   },
 };
