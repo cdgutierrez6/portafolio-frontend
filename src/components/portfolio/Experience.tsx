@@ -59,7 +59,7 @@ function ExperienceCard({ exp, t, index, expanded, onToggle, animated }: { exp: 
             <p style={{ fontWeight: 600, opacity: 0.9 }}>{exp.role}</p>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.25rem" }}>
-            <span style={{ fontSize: "0.8rem", padding: "0.25rem 0.75rem", borderRadius: "9999px", background: "color-mix(in srgb, var(--color-secondary) 15%, transparent)", color: "var(--color-secondary)", border: "1px solid color-mix(in srgb, var(--color-secondary) 30%, transparent)", whiteSpace: "nowrap" }}>
+            <span className="exp-date-badge" style={{ fontSize: "0.8rem", padding: "0.25rem 0.75rem", borderRadius: "9999px", background: "color-mix(in srgb, var(--color-secondary) 15%, transparent)", color: "var(--color-secondary)", border: "1px solid color-mix(in srgb, var(--color-secondary) 30%, transparent)", whiteSpace: "nowrap" }}>
               {exp.startDate} — {exp.endDate ?? t.experience.present}
             </span>
             <span style={{ fontSize: "1rem", transition: "transform 0.3s", display: "inline-block", transform: expanded ? "rotate(180deg)" : "none" }}>▼</span>

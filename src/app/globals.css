@@ -620,27 +620,77 @@ body {
 /* ── RESPONSIVE ── */
 html, body { overflow-x: hidden; max-width: 100%; }
 
+/* Previene overflow en cualquier hijo */
+* { min-width: 0; }
+
 @media (max-width: 768px) {
   .section { padding: 3.5rem 0; }
+  .section-title { font-size: clamp(1.4rem, 5vw, 2rem) !important; margin-bottom: 2rem !important; }
+
+  /* Hero */
   .hero-grid { grid-template-columns: 1fr !important; gap: 2rem !important; text-align: center; }
   .hero-photo-anim, .hero-photo { order: -1; }
   .hero-photo-anim > div, .hero-photo > div { width: 200px !important; height: 200px !important; }
-  .hero-buttons { justify-content: center !important; }
+  .hero-cta-wrap { justify-content: center !important; }
+
+  /* About */
   .about-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
   .about-stats-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 0.75rem !important; }
+
+  /* Education */
   .edu-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+
+  /* Contact */
   .contact-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+
+  /* Skills */
   .skills-grid { grid-template-columns: 1fr !important; }
-  .stat-card-inner { padding: 1.25rem !important; }
+
+  /* Cards */
+  .card { padding: 1.25rem !important; }
+
+  /* Experience timeline */
+  .timeline-container { padding-left: 1.5rem !important; }
+  .timeline-dot { left: -1.35rem !important; }
+
+  /* Experience date badge — permite que el texto rompa en móvil */
+  .exp-date-badge { white-space: normal !important; text-align: right; }
 }
 
 @media (max-width: 480px) {
   .section { padding: 2.5rem 0; }
-  .about-stats-grid { grid-template-columns: 1fr 1fr !important; gap: 0.6rem !important; }
+  .section-title { font-size: clamp(1.2rem, 6vw, 1.6rem) !important; }
+
+  /* About stats — 3 columnas en 480px con padding reducido */
+  .about-stats-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 0.5rem !important; }
+  .about-stats-grid .card { padding: 1rem 0.5rem !important; }
+  .about-stats-grid .card > div:first-child { font-size: 1.8rem !important; }
+  .about-stats-grid .card > div:last-child { font-size: 0.7rem !important; }
+
+  /* Skill cards */
   .skill-card-v2 { padding: 1.25rem !important; }
-  .hero-name-text { font-size: 2rem !important; }
+
+  /* Hero */
   .intro-content { padding: 0 1rem; }
   .hero-cta-wrap { flex-direction: column !important; align-items: center !important; }
   .hero-cta-wrap a, .hero-cta-wrap button { width: 100% !important; text-align: center !important; justify-content: center !important; }
+
+  /* Timeline */
   .timeline-container { padding-left: 1.25rem !important; }
+
+  /* Evita overflow de texto largo en cards */
+  .card p, .card h3, .card span { word-break: break-word; overflow-wrap: break-word; }
+
+  /* Navbar logo size */
+  .nav-logo span { font-size: 1rem !important; }
+
+  /* Buttons full width en pantallas muy pequeñas */
+  .btn-primary, .btn-outline { font-size: 0.88rem !important; padding: 0.65rem 1.25rem !important; }
+}
+
+@media (max-width: 360px) {
+  .section { padding: 2rem 0; }
+  .about-stats-grid { grid-template-columns: 1fr 1fr 1fr !important; }
+  .hero-photo-anim > div, .hero-photo > div { width: 160px !important; height: 160px !important; }
+  .timeline-container { padding-left: 1rem !important; }
 }
