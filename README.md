@@ -6,19 +6,166 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-Portfolio personal multilingüe (ES · EN · PT) que presenta mi experiencia como Solutions Architect & Senior Full-Stack Engineer con 15+ años en la industria.
+---
+
+<details open>
+<summary><h2>🇺🇸 English</h2></summary>
+
+Multilingual personal portfolio (ES · EN · PT) showcasing 15+ years of experience as a Solutions Architect & Senior Full-Stack Engineer. Built with Next.js 14 App Router, animated with Framer Motion and auto-deployed to Vercel.
+
+**[View Live Demo →](https://portafolio-frontend-wheat.vercel.app)**
+
+---
+
+### Features
+
+- **Multilingual** — Spanish, English and Portuguese with `next-intl`
+- **Animations** — Smooth transitions with `framer-motion`
+- **Interactive particles** — Dynamic background with `@tsparticles`
+- **Contact form** — Email delivery via `Resend` API
+- **SEO optimized** — Dynamic metadata per locale
+- **Performance** — 90+ on Lighthouse (Performance, Accessibility, Best Practices)
+- **Tests** — Test suite with `Vitest`
+
+---
+
+### Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript 5 |
+| Styles | Tailwind CSS 3 |
+| Animations | Framer Motion 11 |
+| Particles | @tsparticles/react |
+| i18n | next-intl |
+| Email | Resend API |
+| Testing | Vitest |
+| Deploy | Vercel |
+
+---
+
+### Project Architecture
+
+```
+src/
+├── app/
+│   ├── [locale]/          # Internationalized routes
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── api/
+│   │   └── contact/       # API Route for contact form
+│   │       └── route.ts
+│   ├── globals.css
+│   └── layout.tsx
+├── components/
+│   ├── portfolio/         # Main sections
+│   │   ├── Hero.tsx
+│   │   ├── About.tsx
+│   │   ├── Experience.tsx
+│   │   ├── Skills.tsx
+│   │   ├── Education.tsx
+│   │   ├── Contact.tsx
+│   │   ├── IntroScreen.tsx
+│   │   └── TechTag.tsx
+│   └── ui/                # Reusable components
+│       ├── Navbar.tsx
+│       ├── Footer.tsx
+│       └── ParticlesBg.tsx
+├── data/
+│   └── portfolio-data.ts  # Centralized portfolio data
+├── hooks/
+│   └── useReveal.ts       # Reveal-on-scroll animation hook
+├── lib/
+│   ├── types.ts
+│   └── tech-descriptions.ts
+└── middleware.ts           # Locale handling
+```
+
+---
+
+### Local Development
+
+#### Prerequisites
+- Node.js 18+
+- npm or yarn
+
+#### Setup
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/cdgutierrez6/portafolio-frontend.git
+cd portafolio-frontend
+
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment variables
+cp .env.local.example .env.local
+# Edit .env.local with your RESEND_API_KEY
+
+# 4. Start development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+#### Environment Variables
+
+```env
+RESEND_API_KEY=your_resend_api_key_here
+```
+
+---
+
+### Available Scripts
+
+```bash
+npm run dev      # Development server
+npm run build    # Production build
+npm run start    # Production server
+npm run lint     # ESLint
+npm run test     # Vitest test suite
+```
+
+---
+
+### Deploy
+
+The project is deployed on **Vercel** with automatic CI/CD from the `master` branch.
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/cdgutierrez6/portafolio-frontend)
+
+---
+
+### Contact
+
+**Cristian Daniel Gutiérrez S.**
+
+- Email: [cdgutierrez6@gmail.com](mailto:cdgutierrez6@gmail.com)
+- LinkedIn: [cristian-daniel-gutiérrez-segura](https://www.linkedin.com/in/cristian-daniel-guti%C3%A9rrez-segura)
+- Portfolio: [portafolio-frontend-wheat.vercel.app](https://portafolio-frontend-wheat.vercel.app)
+
+---
+
+### License
+
+MIT License — see [LICENSE](LICENSE) for details.
+
+</details>
+
+---
+
+<details>
+<summary><h2>🇨🇴 Español</h2></summary>
+
+Portfolio personal multilingüe (ES · EN · PT) que presenta más de 15 años de experiencia como Solutions Architect & Senior Full-Stack Engineer. Construido con Next.js 14 App Router, animado con Framer Motion y desplegado automáticamente en Vercel.
 
 **[Ver Demo en Vivo →](https://portafolio-frontend-wheat.vercel.app)**
 
 ---
 
-## Capturas de Pantalla
-
-> *Portfolio con animación de partículas, secciones de experiencia, habilidades y formulario de contacto.*
-
----
-
-## Características
+### Características
 
 - **Multilingüe** — Español, Inglés y Portugués con `next-intl`
 - **Animaciones** — Transiciones fluidas con `framer-motion`
@@ -30,7 +177,7 @@ Portfolio personal multilingüe (ES · EN · PT) que presenta mi experiencia com
 
 ---
 
-## Stack Técnico
+### Stack Técnico
 
 | Capa | Tecnología |
 |---|---|
@@ -46,7 +193,7 @@ Portfolio personal multilingüe (ES · EN · PT) que presenta mi experiencia com
 
 ---
 
-## Arquitectura del Proyecto
+### Arquitectura del Proyecto
 
 ```
 src/
@@ -85,14 +232,13 @@ src/
 
 ---
 
-## Instalación y Desarrollo Local
+### Instalación y Desarrollo Local
 
-### Prerrequisitos
-
+#### Prerrequisitos
 - Node.js 18+
 - npm o yarn
 
-### Pasos
+#### Pasos
 
 ```bash
 # 1. Clonar el repositorio
@@ -112,7 +258,7 @@ npm run dev
 
 Abre [http://localhost:3000](http://localhost:3000) en el navegador.
 
-### Variables de Entorno
+#### Variables de Entorno
 
 ```env
 RESEND_API_KEY=your_resend_api_key_here
@@ -120,18 +266,19 @@ RESEND_API_KEY=your_resend_api_key_here
 
 ---
 
-## Scripts Disponibles
+### Scripts Disponibles
 
 ```bash
 npm run dev      # Servidor de desarrollo
 npm run build    # Build de producción
 npm run start    # Servidor de producción
-npm run lint     # Linter
+npm run lint     # ESLint
+npm run test     # Suite de tests Vitest
 ```
 
 ---
 
-## Deploy
+### Deploy
 
 El proyecto está desplegado en **Vercel** con deploy automático desde la rama `master`.
 
@@ -139,7 +286,7 @@ El proyecto está desplegado en **Vercel** con deploy automático desde la rama 
 
 ---
 
-## Contacto
+### Contacto
 
 **Cristian Daniel Gutiérrez S.**
 
@@ -149,6 +296,8 @@ El proyecto está desplegado en **Vercel** con deploy automático desde la rama 
 
 ---
 
-## Licencia
+### Licencia
 
 MIT License — ver [LICENSE](LICENSE) para detalles.
+
+</details>
