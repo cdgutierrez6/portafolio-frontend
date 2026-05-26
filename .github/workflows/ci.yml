@@ -7,8 +7,11 @@ on:
     branches: [master, main]
     types: [opened, synchronize, reopened]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Opt-in to Node.js 24 runner (deprecation of Node.js 20)
+
 jobs:
-  # ── 1. Lint ────────────────────────────────────────────────────────────────
+  # ── 1. Lint ────────────────────────────────────────────────────────────────────────────────
   lint:
     name: 🔍 ESLint
     runs-on: ubuntu-latest
@@ -26,7 +29,7 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
-  # ── 2. Tests + Coverage ────────────────────────────────────────────────────
+  # ── 2. Tests + Coverage ───────────────────────────────────────────────────────────────────
   test:
     name: 🧪 Vitest & Coverage
     runs-on: ubuntu-latest
@@ -62,7 +65,7 @@ jobs:
           path: coverage/lcov.info
           retention-days: 1
 
-  # ── 3. Next.js Build ───────────────────────────────────────────────────────
+  # ── 3. Next.js Build ─────────────────────────────────────────────────────────────────────
   build:
     name: 🏗️ Next.js Build
     runs-on: ubuntu-latest
@@ -85,7 +88,7 @@ jobs:
           # Dummy key — build-time only, no real emails sent in CI
           RESEND_API_KEY: re_ci_placeholder
 
-  # ── 4. SonarCloud Quality Gate ─────────────────────────────────────────────
+  # ── 4. SonarCloud Quality Gate ─────────────────────────────────────────────────────────────────
   sonar:
     name: 📊 SonarCloud
     runs-on: ubuntu-latest
