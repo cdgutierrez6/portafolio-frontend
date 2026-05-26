@@ -1,0 +1,120 @@
+name: CI — Portfolio Frontend
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  # ── 1. Lint ────────────────────────────────────────────────────────────────
+  lint:
+    name: 🔍 ESLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+  # ── 2. Tests + Coverage ────────────────────────────────────────────────────
+  test:
+    name: 🧪 Vitest & Coverage
+    runs-on: ubuntu-latest
+    needs: lint
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage (lcov for SonarCloud)
+        run: |
+          npx vitest run \
+            --coverage \
+            --coverage.reporter=lcov \
+            --coverage.reporter=text \
+            --coverage.thresholds.lines=80 \
+            --coverage.thresholds.functions=85 \
+            --coverage.thresholds.branches=75
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov-report
+          path: coverage/lcov.info
+          retention-days: 1
+
+  # ── 3. Next.js Build ───────────────────────────────────────────────────────
+  build:
+    name: 🏗️ Next.js Build
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Dummy key — build-time only, no real emails sent in CI
+          RESEND_API_KEY: re_ci_placeholder
+
+  # ── 4. SonarCloud Quality Gate ─────────────────────────────────────────────
+  sonar:
+    name: 📊 SonarCloud
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate lcov coverage
+        run: npx vitest run --coverage --coverage.reporter=lcov
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=cdgutierrez6_portafolio-frontend
+            -Dsonar.organization=cdgutierrez6
+            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.qualitygate.wait=true
