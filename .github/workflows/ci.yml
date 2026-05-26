@@ -11,7 +11,7 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # Opt-in to Node.js 24 runner (deprecation of Node.js 20)
 
 jobs:
-  # ── 1. Lint ────────────────────────────────────────────────────────────────────────────────
+  # ── 1. Lint ───────────────────────────────────────────────────────────────────────────────────────
   lint:
     name: 🔍 ESLint
     runs-on: ubuntu-latest
@@ -26,10 +26,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install ESLint (not in lockfile, ad-hoc for CI)
+        run: npm install --no-save eslint@^8 eslint-config-next@14.2.5
+
       - name: Run ESLint
         run: npm run lint
 
-  # ── 2. Tests + Coverage ───────────────────────────────────────────────────────────────────
+  # ── 2. Tests + Coverage ────────────────────────────────────────────────────────────────────────────────────────────
   test:
     name: 🧪 Vitest & Coverage
     runs-on: ubuntu-latest
@@ -50,13 +53,7 @@ jobs:
 
       - name: Run tests with coverage (lcov for SonarCloud)
         run: |
-          npx vitest run \
-            --coverage \
-            --coverage.reporter=lcov \
-            --coverage.reporter=text \
-            --coverage.thresholds.lines=80 \
-            --coverage.thresholds.functions=85 \
-            --coverage.thresholds.branches=75
+          npx vitest run             --coverage             --coverage.reporter=lcov             --coverage.reporter=text             --coverage.thresholds.lines=80             --coverage.thresholds.functions=85             --coverage.thresholds.branches=75
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
@@ -65,7 +62,7 @@ jobs:
           path: coverage/lcov.info
           retention-days: 1
 
-  # ── 3. Next.js Build ─────────────────────────────────────────────────────────────────────
+  # ── 3. Next.js Build ──────────────────────────────────────────────────────────────────────────────────────────────────
   build:
     name: 🏗️ Next.js Build
     runs-on: ubuntu-latest
@@ -88,7 +85,7 @@ jobs:
           # Dummy key — build-time only, no real emails sent in CI
           RESEND_API_KEY: re_ci_placeholder
 
-  # ── 4. SonarCloud Quality Gate ─────────────────────────────────────────────────────────────────
+  # ── 4. SonarCloud Quality Gate ─────────────────────────────────────────────────────────────────────────────────────────────────────
   sonar:
     name: 📊 SonarCloud
     runs-on: ubuntu-latest
