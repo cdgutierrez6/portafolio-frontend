@@ -1,47 +1,8 @@
 /**
- * Tests para POST /api/contact
- * Valida: campos requeridos, longitudes, formato email, rate limiting y envío
+ * Tests para validadores del formulario de contacto
+ * Importa desde src/lib/contact-validators.ts para cobertura real de código
  */
-
-// Helpers replicados del route (sin importar el módulo completo para aislar)
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-
-function validateContactInput(data: {
-  senderName?: unknown;
-  senderEmail?: unknown;
-  subject?: unknown;
-  message?: unknown;
-}): { valid: boolean; error?: string } {
-  const { senderName, senderEmail, subject, message } = data;
-
-  if (!senderName || !senderEmail || !subject || !message) {
-    return { valid: false, error: "Todos los campos son requeridos" };
-  }
-
-  if (
-    (senderName as string).length > 100 ||
-    (senderEmail as string).length > 254 ||
-    (subject as string).length > 200 ||
-    (message as string).length > 5000
-  ) {
-    return { valid: false, error: "Uno o más campos exceden la longitud máxima permitida" };
-  }
-
-  if (!EMAIL_RE.test(senderEmail as string)) {
-    return { valid: false, error: "Formato de email inválido" };
-  }
-
-  return { valid: true };
-}
-
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+import { validateContactInput, escapeHtml } from "@/lib/contact-validators";
 
 // ── Validación de inputs ──────────────────────────────────────────────────────
 
@@ -207,31 +168,5 @@ describe("escapeHtml — sanitización de inputs", () => {
     const input = '<img src=x onerror="alert(1)">';
     expect(escapeHtml(input)).not.toContain("<");
     expect(escapeHtml(input)).not.toContain(">");
-  });
-});
-
-// ── Localización de datos ─────────────────────────────────────────────────────
-
-describe("getData — localización ES/EN", () => {
-  const raw = {
-    nameEs: "Juan ES", nameEn: "Juan EN",
-    titleEs: "Título ES", titleEn: "Title EN",
-    bioEs: "Bio ES", bioEn: "Bio EN",
-  };
-
-  it("devuelve nombre en español para locale=es", () => {
-    const name = raw.nameEs;
-    expect(name).toBe("Juan ES");
-  });
-
-  it("devuelve nombre en inglés para locale=en", () => {
-    const name = raw.nameEn;
-    expect(name).toBe("Juan EN");
-  });
-
-  it("asigna IDs incrementales a experiencias", () => {
-    const exps = [{ company: "A" }, { company: "B" }].map((e, i) => ({ ...e, id: i + 1 }));
-    expect(exps[0].id).toBe(1);
-    expect(exps[1].id).toBe(2);
   });
 });
