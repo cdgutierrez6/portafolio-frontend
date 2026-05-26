@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://portafolio-frontend-wheat.vercel.app/sitemap.xml
