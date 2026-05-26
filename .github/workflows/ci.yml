@@ -51,6 +51,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Vitest coverage provider (not in lockfile)
+        run: npm install --no-save @vitest/coverage-v8
+
       - name: Run tests with coverage (lcov for SonarCloud)
         run: |
           npx vitest run             --coverage             --coverage.reporter=lcov             --coverage.reporter=text             --coverage.thresholds.lines=80             --coverage.thresholds.functions=85             --coverage.thresholds.branches=75
@@ -103,6 +106,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Vitest coverage provider (not in lockfile)
+        run: npm install --no-save @vitest/coverage-v8
 
       - name: Generate lcov coverage
         run: npx vitest run --coverage --coverage.reporter=lcov
