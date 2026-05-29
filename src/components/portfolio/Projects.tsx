@@ -26,7 +26,7 @@ const LIVE_ICON = (
 
 interface Props {
   projects: Project[];
-  t: { projects: { title: string; subtitle: string; viewCode: string; viewLive: string; star: string; allRepos: string } };
+  t: { projects: { title: string; subtitle: string; viewCode: string; viewLive: string; star: string; allRepos: string; youAreHere: string } };
   animated: boolean;
 }
 
@@ -179,7 +179,21 @@ function ProjectCard({
           {t.viewCode}
         </a>
 
-        {project.liveUrl && (
+        {project.isCurrent ? (
+          <span
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "0.4rem",
+              fontSize: "0.8rem", fontWeight: 600, padding: "0.4rem 0.9rem",
+              borderRadius: "9999px",
+              background: `color-mix(in srgb, ${project.accent} 10%, transparent)`,
+              color: project.accent,
+              border: `1px solid color-mix(in srgb, ${project.accent} 25%, transparent)`,
+              opacity: 0.85,
+            }}
+          >
+            {t.youAreHere}
+          </span>
+        ) : project.liveUrl ? (
           <a
             href={project.liveUrl}
             target="_blank"
@@ -208,7 +222,7 @@ function ProjectCard({
             {LIVE_ICON}
             {t.viewLive}
           </a>
-        )}
+        ) : null}
       </div>
     </div>
   );

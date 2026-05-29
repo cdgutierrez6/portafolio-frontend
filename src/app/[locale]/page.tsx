@@ -56,6 +56,7 @@ function getData(locale: Locale) {
       technologies: p.technologies,
       githubUrl:    p.githubUrl,
       liveUrl:      p.liveUrl,
+      isCurrent:    p.isCurrent,
       language:     p.language,
       stars:        p.stars,
       accent:       p.accent,
