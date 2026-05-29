@@ -4,13 +4,14 @@ import Hero from "@/components/portfolio/Hero";
 import About from "@/components/portfolio/About";
 import Experience from "@/components/portfolio/Experience";
 import Skills from "@/components/portfolio/Skills";
+import Projects from "@/components/portfolio/Projects";
 import Education from "@/components/portfolio/Education";
 import Contact from "@/components/portfolio/Contact";
 import Footer from "@/components/ui/Footer";
 import ParticlesBg from "@/components/ui/ParticlesBg";
 
 function getData(locale: Locale) {
-  const { settings, personalInfo, experiences, skills, education, courses } = portfolioData;
+  const { settings, personalInfo, experiences, skills, education, courses, projects } = portfolioData;
   const isEs = locale === "es";
 
   return {
@@ -48,6 +49,17 @@ function getData(locale: Locale) {
       degree:      isEs ? e.degreeEs : e.degreeEn,
       period:      (!isEs && e.periodEn) ? e.periodEn : e.period,
     })),
+    projects: projects.map((p, i) => ({
+      id:           i + 1,
+      name:         p.name,
+      description:  isEs ? p.descriptionEs : p.descriptionEn,
+      technologies: p.technologies,
+      githubUrl:    p.githubUrl,
+      liveUrl:      p.liveUrl,
+      language:     p.language,
+      stars:        p.stars,
+      accent:       p.accent,
+    })),
     courses: courses.map((c, i) => ({
       id:          i + 1,
       institution: c.institution,
@@ -70,6 +82,7 @@ export default function PortfolioPage({ params }: { params: { locale: string } }
         <About personal={data.personal} t={t} experienceCount={data.experiences.length} animated={data.settings.effectAnimations} />
         <Experience experiences={data.experiences} t={t} animated={data.settings.effectAnimations} />
         <Skills skills={data.skills} t={t} animated={data.settings.effectAnimations} />
+        <Projects projects={data.projects} t={t} animated={data.settings.effectAnimations} />
         <Education education={data.education} courses={data.courses} t={t} animated={data.settings.effectAnimations} />
         <Contact personal={data.personal} t={t} animated={data.settings.effectAnimations} />
         <Footer personal={data.personal} t={t} locale={locale} />

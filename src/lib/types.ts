@@ -1,5 +1,29 @@
 export type Locale = "es" | "en";
 
+export interface ProjectRaw {
+  name: string;
+  descriptionEs: string;
+  descriptionEn: string;
+  technologies: string[];
+  githubUrl: string;
+  liveUrl: string | null;
+  language: string;
+  stars: number;
+  accent: string;
+}
+
+export interface Project {
+  id: number;
+  name: string;
+  description: string;
+  technologies: string[];
+  githubUrl: string;
+  liveUrl: string | null;
+  language: string;
+  stars: number;
+  accent: string;
+}
+
 export interface PortfolioData {
   settings: {
     primaryColor: string;
@@ -34,6 +58,7 @@ export interface PortfolioData {
   education: EducationRaw[];
   skills: SkillRaw[];
   courses: CourseRaw[];
+  projects: ProjectRaw[];
 }
 
 export interface ExperienceRaw {
@@ -122,6 +147,7 @@ export const i18n = {
       about: "Sobre mí",
       experience: "Experiencia",
       skills: "Habilidades",
+      projects: "Proyectos",
       education: "Educación",
       contact: "Contacto",
     },
@@ -135,6 +161,7 @@ export const i18n = {
     experience: { title: "Experiencia Laboral", present: "Presente", technologies: "Tecnologías" },
     skills: { title: "Habilidades Técnicas", technologies: "tecnologías" },
     education: { title: "Educación & Formación", courses: "Cursos & Certificaciones", hours: "horas" },
+    projects: { title: "Proyectos & Código Abierto", subtitle: "Repositorios que demuestran mi stack en producción", viewCode: "Ver código", viewLive: "Ver en vivo", star: "estrella", allRepos: "Ver todos los repositorios →" },
     contact: {
       title: "Contacto", send: "Enviar mensaje", name: "Nombre", message: "Mensaje", subject: "Asunto",
       phone: "TELÉFONO", location: "UBICACIÓN", email: "EMAIL",
@@ -148,6 +175,7 @@ export const i18n = {
       about: "About",
       experience: "Experience",
       skills: "Skills",
+      projects: "Projects",
       education: "Education",
       contact: "Contact",
     },
@@ -161,6 +189,7 @@ export const i18n = {
     experience: { title: "Work Experience", present: "Present", technologies: "Technologies" },
     skills: { title: "Technical Skills", technologies: "technologies" },
     education: { title: "Education & Training", courses: "Courses & Certifications", hours: "hours" },
+    projects: { title: "Projects & Open Source", subtitle: "Repositories that demonstrate my production stack", viewCode: "View code", viewLive: "View live", star: "star", allRepos: "View all repositories →" },
     contact: {
       title: "Contact", send: "Send message", name: "Name", message: "Message", subject: "Subject",
       phone: "PHONE", location: "LOCATION", email: "EMAIL",

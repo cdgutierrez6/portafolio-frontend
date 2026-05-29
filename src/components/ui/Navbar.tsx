@@ -10,7 +10,7 @@ interface NavbarProps {
   initials?: string;
 }
 
-const SECTION_IDS = ["hero", "about", "experience", "skills", "education", "contact"];
+const SECTION_IDS = ["hero", "about", "experience", "skills", "projects", "education", "contact"];
 
 export default function Navbar({ locale, initials = "P" }: NavbarProps) {
   const [scrolled, setScrolled]           = useState(false);
@@ -56,6 +56,7 @@ export default function Navbar({ locale, initials = "P" }: NavbarProps) {
     { href: "#about",      label: t.about,      id: "about"      },
     { href: "#experience", label: t.experience,  id: "experience" },
     { href: "#skills",     label: t.skills,      id: "skills"     },
+    { href: "#projects",   label: t.projects,    id: "projects"   },
     { href: "#education",  label: t.education,   id: "education"  },
     { href: "#contact",    label: t.contact,     id: "contact"    },
   ];
@@ -65,6 +66,7 @@ export default function Navbar({ locale, initials = "P" }: NavbarProps) {
     about: t.about,
     experience: t.experience,
     skills: t.skills,
+    projects: t.projects,
     education: t.education,
     contact: t.contact,
   };
