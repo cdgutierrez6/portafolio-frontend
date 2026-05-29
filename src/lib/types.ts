@@ -44,7 +44,9 @@ export interface ExperienceRaw {
   descriptionEn: string;
   technologies: string[];
   startDate: string;
+  startDateEn?: string;
   endDate: string | null;
+  endDateEn?: string;
   current: boolean;
 }
 
@@ -53,6 +55,7 @@ export interface EducationRaw {
   degreeEs: string;
   degreeEn: string;
   period: string;
+  periodEn?: string;
 }
 
 export interface SkillRaw {
@@ -130,7 +133,7 @@ export const i18n = {
     },
     about: { title: "Sobre Mí", years: "años de experiencia", projects: "proyectos", companies: "empresas" },
     experience: { title: "Experiencia Laboral", present: "Presente", technologies: "Tecnologías" },
-    skills: { title: "Habilidades Técnicas" },
+    skills: { title: "Habilidades Técnicas", technologies: "tecnologías" },
     education: { title: "Educación & Formación", courses: "Cursos & Certificaciones", hours: "horas" },
     contact: {
       title: "Contacto", send: "Enviar mensaje", name: "Nombre", message: "Mensaje", subject: "Asunto",
@@ -156,7 +159,7 @@ export const i18n = {
     },
     about: { title: "About Me", years: "years of experience", projects: "projects", companies: "companies" },
     experience: { title: "Work Experience", present: "Present", technologies: "Technologies" },
-    skills: { title: "Technical Skills" },
+    skills: { title: "Technical Skills", technologies: "technologies" },
     education: { title: "Education & Training", courses: "Courses & Certifications", hours: "hours" },
     contact: {
       title: "Contact", send: "Send message", name: "Name", message: "Message", subject: "Subject",

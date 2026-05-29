@@ -33,8 +33,8 @@ function getData(locale: Locale) {
       role:         isEs ? e.roleEs        : e.roleEn,
       description:  isEs ? e.descriptionEs : e.descriptionEn,
       technologies: e.technologies,
-      startDate:    e.startDate,
-      endDate:      e.endDate,
+      startDate:    (!isEs && e.startDateEn) ? e.startDateEn : e.startDate,
+      endDate:      (!isEs && e.endDateEn)   ? e.endDateEn   : e.endDate,
       current:      e.current,
     })),
     skills: skills.map((s, i) => ({
@@ -46,7 +46,7 @@ function getData(locale: Locale) {
       id:          i + 1,
       institution: e.institution,
       degree:      isEs ? e.degreeEs : e.degreeEn,
-      period:      e.period,
+      period:      (!isEs && e.periodEn) ? e.periodEn : e.period,
     })),
     courses: courses.map((c, i) => ({
       id:          i + 1,

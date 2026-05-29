@@ -6,7 +6,7 @@ import { TechTag } from "@/components/portfolio/TechTag";
 
 interface Props {
   skills: Skill[];
-  t: { skills: { title: string } };
+  t: { skills: { title: string; technologies: string } };
   animated: boolean;
 }
 
@@ -31,7 +31,7 @@ export default function Skills({ skills, t, animated }: Props) {
         <h2 id="skills-heading" ref={titleRef} className="section-title">{t.skills.title}</h2>
         <div className="skills-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(280px, 100%), 1fr))", gap: "1.75rem" }}>
           {skills.map((skill, i) => (
-            <SkillCard key={skill.id} skill={skill} index={i} animated={animated} />
+            <SkillCard key={skill.id} skill={skill} index={i} animated={animated} technologies={t.skills.technologies} />
           ))}
         </div>
       </div>
@@ -39,7 +39,7 @@ export default function Skills({ skills, t, animated }: Props) {
   );
 }
 
-function SkillCard({ skill, index, animated }: { skill: Skill; index: number; animated: boolean }) {
+function SkillCard({ skill, index, animated, technologies }: { skill: Skill; index: number; animated: boolean; technologies: string }) {
   const ref  = useReveal<HTMLDivElement>({ direction: "up", delay: index * 120, threshold: 0.1, animated });
   const meta = CATEGORY_META[skill.category] ?? { icon: "💡", gradient: "135deg, #6366F1, #10B981", accent: "#6366F1" };
 
@@ -52,7 +52,7 @@ function SkillCard({ skill, index, animated }: { skill: Skill; index: number; an
         </div>
         <div>
           <h3 className="skill-category-title" style={{ color: meta.accent }}>{skill.category}</h3>
-          <p className="skill-count">{skill.items.length} tecnologías</p>
+          <p className="skill-count">{skill.items.length} {technologies}</p>
         </div>
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>

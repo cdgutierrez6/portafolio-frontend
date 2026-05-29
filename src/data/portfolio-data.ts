@@ -27,7 +27,7 @@ export const portfolioData: PortfolioData = {
     email: "cdgutierrez6@gmail.com",
     phone: "320-617-4143",
     location: "Manizales, Caldas, Colombia",
-    photoUrl: null,
+    photoUrl: "/yo.jpg",
     githubUrl: "https://github.com/cdgutierrez6",
     linkedinUrl: "https://www.linkedin.com/in/cristian-daniel-guti%C3%A9rrez-segura",
     cvUrl: null,
@@ -57,6 +57,7 @@ export const portfolioData: PortfolioData = {
       technologies: ["Microservices", "Microfrontends", "Angular 8", ".NET Core", "C#", "SQL Server", "Docker"],
       startDate: "Feb 2022",
       endDate: "Ago 2022",
+      endDateEn: "Aug 2022",
       current: false,
     },
     {
@@ -70,6 +71,7 @@ export const portfolioData: PortfolioData = {
       technologies: ["Microservices", "Microfrontends", "Angular 8", "C#", "SQL Server", "Docker"],
       startDate: "Jul 2021",
       endDate: "Dic 2021",
+      endDateEn: "Dec 2021",
       current: false,
     },
     {
@@ -83,6 +85,7 @@ export const portfolioData: PortfolioData = {
       technologies: ["React.js", "Angular", "Node.js", "Adonis.js", "MySQL", "SQL Server"],
       startDate: "Mar 2020",
       endDate: "Ene 2021",
+      endDateEn: "Jan 2021",
       current: false,
     },
     {
@@ -96,6 +99,7 @@ export const portfolioData: PortfolioData = {
       technologies: [".NET Core", "Java", "Angular", "Oracle", "MySQL", "Node.js"],
       startDate: "Jul 2018",
       endDate: "Ene 2019",
+      endDateEn: "Jan 2019",
       current: false,
     },
     {
@@ -121,6 +125,7 @@ export const portfolioData: PortfolioData = {
         "Development of platforms for management, administration and geolocation of private vehicles.",
       technologies: ["Java", "PostgreSQL", "PHP", "Laravel", "CSS", "PrimeFaces", "C#", ".NET"],
       startDate: "Dic 2014",
+      startDateEn: "Dec 2014",
       endDate: "Oct 2016",
       current: false,
     },
@@ -145,6 +150,7 @@ export const portfolioData: PortfolioData = {
         "Participation in incident resolution. Development and design of the COBRA system. First formal work experience in software development.",
       technologies: ["Java", "PostgreSQL", "CSS", "RichFaces"],
       startDate: "Abr 2012",
+      startDateEn: "Apr 2012",
       endDate: "Oct 2014",
       current: false,
     },
@@ -155,12 +161,13 @@ export const portfolioData: PortfolioData = {
       degreeEs: "Ingeniería de Sistemas — 8° Semestre (En curso)",
       degreeEn: "Systems Engineering — 8th Semester (In progress)",
       period: "Actualidad",
+      periodEn: "Present",
     },
     {
       institution: "SENA",
       degreeEs: "Tecnólogo en Análisis y Desarrollo de Sistemas de Información",
       degreeEn: "Technologist in Analysis and Information Systems Development",
-      period: "2011",
+      period: "2009 – 2012",
     },
     {
       institution: "CONFAMILIARES",
