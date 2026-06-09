@@ -216,6 +216,17 @@ export const portfolioData: PortfolioData = {
   ],
   projects: [
     {
+      name: "FleetVision",
+      descriptionEs: "Plataforma SaaS B2B de telemetría vehicular con 10 microservicios .NET 8 (Clean Architecture), Angular 21 con 7 MFEs (Nx Federation), Kafka KRaft 3 nodos, TimescaleDB, PostGIS, YARP Gateway, SignalR y despliegue en Azure Container Apps.",
+      descriptionEn: "B2B SaaS fleet telemetry platform with 10 .NET 8 microservices (Clean Architecture), Angular 21 with 7 MFEs (Nx Federation), 3-node Kafka KRaft, TimescaleDB, PostGIS, YARP Gateway, SignalR and Azure Container Apps deployment.",
+      technologies: [".NET 8", "Angular 21", "Kafka", "TimescaleDB", "PostGIS", "Docker", "Azure"],
+      githubUrl: "https://github.com/cdgutierrez6/fleetvision",
+      liveUrl: null,
+      language: "C#",
+      stars: 0,
+      accent: "#0EA5E9",
+    },
+    {
       name: "SAP AI Triage Bridge",
       descriptionEs: "Capa de automatización IA que ingesta datos de requisiciones de compra SAP S/4HANA (módulo MM) y ejecuta triage inteligente: detección de anomalías, categorización de gasto, scoring de riesgo y resúmenes en lenguaje natural.",
       descriptionEn: "AI-powered automation layer that ingests SAP S/4HANA purchase-requisition data (MM module) and runs intelligent triage: anomaly detection, spend categorization, risk scoring, and plain-language summaries.",
