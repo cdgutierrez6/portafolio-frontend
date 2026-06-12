@@ -22,8 +22,8 @@ export const portfolioData: PortfolioData = {
       "Solutions Architect y Senior Full-Stack Engineer con más de 15 años de experiencia liderando la arquitectura de microservicios escalables en ecosistemas .NET Core, Java y Node.js. Me especializo en el diseño de infraestructuras backend robustas y aplicaciones web de alto rendimiento (Angular/React) manteniendo rigurosos estándares de Clean Code y SOLID. Actualmente enfocado en la construcción de ecosistemas de automatización B2B e integración de tecnologías de IA de vanguardia (LLMs, agentes autónomos) para maximizar la eficiencia empresarial.",
     bioEn:
       "Solutions Architect and Senior Full-Stack Engineer with 15+ years of experience driving the architecture of scalable microservices across .NET Core, Java, and Node.js ecosystems. I specialize in designing robust backend infrastructures and high-performance web applications (Angular/React) while upholding rigorous Clean Code and SOLID standards. Currently focused on engineering B2B automation ecosystems and integrating cutting-edge AI technologies (LLMs, autonomous agents) to maximize enterprise efficiency.",
-    headlineEs: "15+ años de experiencia  ·  9 empresas  ·  Solutions Architect  ·  AI Engineer",
-    headlineEn: "15+ years of experience  ·  9 companies  ·  Solutions Architect  ·  AI Engineer",
+    headlineEs: "15+ años de experiencia  ·  10 empresas  ·  Solutions Architect  ·  AI Engineer",
+    headlineEn: "15+ years of experience  ·  10 companies  ·  Solutions Architect  ·  AI Engineer",
     email: "cdgutierrez6@gmail.com",
     phone: "320-617-4143",
     location: "Manizales, Caldas, Colombia",
@@ -33,6 +33,20 @@ export const portfolioData: PortfolioData = {
     cvUrl: null,
   },
   experiences: [
+    {
+      company: "EfiziAI",
+      roleEs: "Lead AI & Automation Engineer / Solutions Architect",
+      roleEn: "Lead AI & Automation Engineer / Solutions Architect",
+      descriptionEs:
+        "Arquitecté y construí EfiziAI, una plataforma SaaS B2B full-stack para gestión de leads con IA y automatización de outreach orientada a agencias de marketing. Diseñé el sistema completo: API REST en Node.js/Express, CRM en React/Vite, PostgreSQL (13 tablas con relaciones complejas), reverse proxy Traefik en VPS Hostinger, todo contenerizado con Docker. Integré Claude API para scoring de leads (0–100 con predicción de gasto y evaluación de riesgo), n8n para automatización de workflows, WAHA para secuencias de outreach por WhatsApp, y webhooks de Hotmart con validación HMAC-SHA256 para activación de planes por pago. Implementé modelo freemium con enforcement de cuotas en 3 niveles, RBAC (admin/agente), UI multilingüe (ES/EN/FR) y auditoría completa de transacciones.",
+      descriptionEn:
+        "Architected and built EfiziAI, a full-stack B2B SaaS platform for AI-powered lead management and outreach automation targeting marketing agencies. Designed the complete system end-to-end: Node.js/Express REST API, React/Vite CRM, PostgreSQL (13 tables with complex relationships), Traefik reverse proxy on Hostinger VPS, all containerized with Docker. Integrated Claude API for lead scoring (0–100 with spend prediction and risk assessment), n8n for workflow automation, WAHA for WhatsApp outreach sequences, and Hotmart webhooks with HMAC-SHA256 validation for payment-driven plan activation. Implemented a 3-tier freemium billing model with quota enforcement at middleware level, RBAC (admin/agent), multilingual UI (ES/EN/FR), and full transaction audit logging.",
+      technologies: ["Node.js", "Express", "React", "Vite", "PostgreSQL", "Docker", "Traefik", "n8n", "Claude API", "WAHA", "JWT", "Hotmart", "WhatsApp API"],
+      startDate: "Ene 2025",
+      startDateEn: "Jan 2025",
+      endDate: null,
+      current: true,
+    },
     {
       company: "SATRACK",
       roleEs: "Senior Software Engineer",
