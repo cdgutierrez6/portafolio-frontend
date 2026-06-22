@@ -1,0 +1,8 @@
+# OpenSpec project config
+# 'context' is injected into all artifact instructions (propose/specs/design/tasks).
+schema: spec-driven
+context: |
+  Portafolio Frontend: portfolio personal bilingue (ES/EN) de Cristian, desplegado en Vercel.
+  Stack: Next.js + React + TailwindCSS + TypeScript. Branch principal: master.
+  Estructura: src/, public/. Live en Vercel.
+  Constraint: mantener paridad ES/EN y buen rendimiento (deploy estatico en Vercel).
