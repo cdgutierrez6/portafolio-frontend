@@ -9,7 +9,10 @@ import Projects from "@/components/portfolio/Projects";
 import Education from "@/components/portfolio/Education";
 import Contact from "@/components/portfolio/Contact";
 import Footer from "@/components/ui/Footer";
-import ParticlesBg from "@/components/ui/ParticlesBg";
+import SmoothScroll from "@/components/three/SmoothScroll";
+import Scene3DBackgroundClient from "@/components/three/Scene3DBackgroundClient";
+import HeroTitle from "@/components/portfolio/HeroTitle";
+import { titleLines } from "@/lib/hero-title";
 
 function getData(locale: Locale) {
   const { settings, personalInfo, experiences, skills, education, courses, projects } = portfolioData;
@@ -78,8 +81,22 @@ export default function PortfolioPage({ params }: { params: { locale: string } }
 
   return (
     <>
-      {data.settings.effectParticles && <ParticlesBg />}
-      <div className={data.settings.effectGradient ? "bg-gradient-animated" : ""} style={{ minHeight: "100vh" }}>
+      {/* Motor de scroll suave (Lenis) + barra de progreso superior */}
+      <SmoothScroll />
+
+      {/* ── ORDEN DE CAPAS (esto es lo que crea el efecto de 60fps) ──
+          z1  capa TRASERA del titular colosal   → el laptop pasa POR DELANTE
+          z2  canvas 3D global (fijo)
+          z3  capa FRONTAL del titular (recortada) + todo el contenido
+          Resultado: el laptop se ENTRELAZA con las letras. */}
+      <HeroTitle lines={titleLines(data.personal.name)} layer="back" />
+
+      {/* UN canvas 3D fijo detrás de toda la página. El laptop la recorre entera:
+          cambia de pose en cada sección, gira sin parar y abre/cierra la tapa. */}
+      <Scene3DBackgroundClient />
+
+      {/* Contenido (z 3), transparente para que el 3D se vea entre las secciones. */}
+      <div style={{ minHeight: "100vh", position: "relative", zIndex: 3 }}>
         <Hero personal={data.personal} t={t} locale={locale} animated={data.settings.effectAnimations} />
         <Showcase3D locale={locale} />
         <About personal={data.personal} t={t} experienceCount={data.experiences.length} animated={data.settings.effectAnimations} />

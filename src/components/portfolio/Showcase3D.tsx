@@ -4,7 +4,6 @@ import { useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import Scene3DClient from "../three/Scene3DClient";
 import { scrollStore } from "../three/scroll-store";
 import { type Locale } from "@/lib/types";
 
@@ -110,11 +109,8 @@ export default function Showcase3D({ locale }: { locale: Locale }) {
           justifyContent: "center",
         }}
       >
-        {/* Canvas 3D a pantalla completa */}
-        <Scene3DClient
-          mode="showcase"
-          className="showcase-canvas"
-        />
+        {/* El 3D lo pinta el canvas GLOBAL fijo (detrás de toda la página).
+            Esta sección solo aporta el recorrido de scroll y el copy por etapas. */}
 
         {/* Copy por etapas, encima del 3D */}
         <div
