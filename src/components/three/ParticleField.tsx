@@ -126,6 +126,7 @@ const simFragment = /* glsl */ `
   uniform float uMouseRadius;
   uniform float uMouseStrength;
   uniform float uFreeze;        // 1.0 = prefers-reduced-motion
+  uniform float uOrder;         // 0 = nebulosa a la deriva · 1 = clavado al grafo (EL COLAPSO)
 
   varying vec2 vUv;
 
@@ -141,13 +142,14 @@ const simFragment = /* glsl */ `
     // dt acotado: tras una pestaña en background dt es enorme y el sim explota.
     float dt = min(uDelta, 0.033) * (1.0 - uFreeze);
 
-    // 1) FLUJO — la energía del campo la manda el scroll.
-    float energy = 0.20 + uScroll * 1.00 + uVelocity * 0.8;
+    // 1) FLUJO — la energía del campo la manda el scroll. Se APAGA al ordenar:
+    //    cuando uOrder→1 el ruido casi desaparece y el grafo se congela nítido.
+    float energy = (0.20 + uScroll * 0.55 + uVelocity * 0.8) * (1.0 - uOrder * 0.92);
     vec3 flow = curlNoise(pos * 0.28 + vec3(0.0, 0.0, uTime * 0.05));
     pos += flow * energy * dt * 0.6;
 
-    // 2) DERIVA — el campo "cae" mientras avanzas la página.
-    pos.y -= uScroll * dt * 0.30;
+    // 2) DERIVA — el campo "cae" mientras avanzas la página (también se apaga al ordenar).
+    pos.y -= uScroll * dt * 0.30 * (1.0 - uOrder);
 
     // 3) MOUSE — repulsión suave. Sin if(): smoothstep hace de falloff.
     vec3 toMouse = pos - uMouse;
@@ -155,8 +157,10 @@ const simFragment = /* glsl */ `
     float push = 1.0 - smoothstep(0.0, uMouseRadius, d);
     pos += normalize(toMouse + vec3(1e-4)) * push * push * uMouseStrength * dt;
 
-    // 4) MUELLE al origen — sin esto la nube se disuelve en 10s y pierde silueta.
-    pos = mix(pos, origin.xyz, 0.55 * dt);
+    // 4) MUELLE al origen (= al GRAFO). Débil en la nebulosa, brutal en el colapso:
+    //    uOrder 0→1 lleva la fuerza de 0.55 a 9.0 → las partículas se CLAVAN en los nodos/aristas.
+    float springK = mix(0.55, 9.0, uOrder);
+    pos = mix(pos, origin.xyz, clamp(springK * dt, 0.0, 1.0));
 
     // 5) VIDA → respawn escalonado (evita que todo se mueva en bloque).
     life -= dt * (0.06 + uScroll * 0.06);
@@ -233,23 +237,79 @@ type Props = {
   colorB?: string;
 };
 
+/**
+ * Grafo de RED NEURONAL — las posiciones-objetivo de las partículas.
+ * Determinista (sin Math.random para la estructura) para que el layout sea estable e
+ * ITERABLE visualmente. Es una red por capas: se lee como "IA / sistema", no como sopa.
+ * Aquí es donde se gana o se pierde el efecto (el 60% del riesgo es que LEA como arquitectura).
+ */
+type Node = { x: number; y: number; z: number };
+
+function makeGraph() {
+  // Capas a lo largo de X. Cuentas simétricas → se ve intencional, no aleatorio.
+  const layers = [
+    { x: -4.0, count: 5 },
+    { x: -2.0, count: 9 },
+    { x: 0.0, count: 12 },
+    { x: 2.0, count: 9 },
+    { x: 4.0, count: 5 },
+  ];
+  const nodes: (Node & { layer: number })[] = [];
+  layers.forEach((L, li) => {
+    for (let i = 0; i < L.count; i++) {
+      const y = L.count === 1 ? 0 : (i / (L.count - 1) - 0.5) * 4.6; // ±2.3 (roza el borde = vastedad)
+      const z = -1.0 + Math.sin(i * 2.3 + li * 1.7) * 1.15;          // profundidad real
+      nodes.push({ x: L.x, y, z, layer: li });
+    }
+  });
+
+  // Aristas: cada nodo se conecta a los 4 más cercanos en Y de la capa siguiente.
+  // (No "todos con todos" → se ve red, no maraña.)
+  const edges: [Node, Node][] = [];
+  for (let li = 0; li < layers.length - 1; li++) {
+    const a = nodes.filter((n) => n.layer === li);
+    const b = nodes.filter((n) => n.layer === li + 1);
+    for (const na of a) {
+      const nearest = [...b].sort((p, q) => Math.abs(p.y - na.y) - Math.abs(q.y - na.y)).slice(0, 4);
+      for (const nb of nearest) edges.push([na, nb]);
+    }
+  }
+  return { nodes, edges };
+}
+
 function makeOriginTexture(size: number) {
   const n = size * size;
   const data = new Float32Array(n * 4);
-  for (let i = 0; i < n; i++) {
-    // Cascarón elipsoidal alrededor del laptop: hueco en el centro para que
-    // el modelo respire y las partículas no le hagan ruido encima.
-    const u = Math.random();
-    const v = Math.random();
-    const theta = u * Math.PI * 2;
-    const phi = Math.acos(2 * v - 1);
-    const r = 2.6 + Math.pow(Math.random(), 0.6) * 4.2;
+  const { nodes, edges } = makeGraph();
 
-    data[i * 4 + 0] = r * Math.sin(phi) * Math.cos(theta) * 1.35;
-    data[i * 4 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.70;
-    data[i * 4 + 2] = r * Math.cos(phi) * 0.55 - 1.0;
+  // ~38% de partículas forman los NODOS (cúmulos densos y brillantes);
+  // el resto recorre las ARISTAS (líneas de luz por donde luego viajan las señales).
+  const nodeFrac = 0.38;
+  const jitterNode = 0.10;
+  const jitterEdge = 0.045;
+
+  for (let i = 0; i < n; i++) {
+    let x: number, y: number, z: number;
+    if (Math.random() < nodeFrac) {
+      const nd = nodes[(Math.random() * nodes.length) | 0];
+      // gaussiana barata (suma de uniformes) → cúmulo redondo alrededor del nodo
+      const g = () => (Math.random() + Math.random() + Math.random() - 1.5) * jitterNode;
+      x = nd.x + g();
+      y = nd.y + g();
+      z = nd.z + g();
+    } else {
+      const e = edges[(Math.random() * edges.length) | 0];
+      const t = Math.random();
+      x = e[0].x + (e[1].x - e[0].x) * t + (Math.random() - 0.5) * jitterEdge;
+      y = e[0].y + (e[1].y - e[0].y) * t + (Math.random() - 0.5) * jitterEdge;
+      z = e[0].z + (e[1].z - e[0].z) * t + (Math.random() - 0.5) * jitterEdge;
+    }
+    data[i * 4 + 0] = x;
+    data[i * 4 + 1] = y;
+    data[i * 4 + 2] = z;
     data[i * 4 + 3] = Math.random(); // vida escalonada
   }
+
   const tex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.FloatType);
   tex.minFilter = THREE.NearestFilter;
   tex.magFilter = THREE.NearestFilter;
@@ -320,6 +380,8 @@ export default function ParticleField({
       uMouseRadius: { value: 1.6 },
       uMouseStrength: { value: 6.0 },
       uFreeze: { value: reduced ? 1 : 0 },
+      // reduced-motion → mostrar el grafo YA resuelto y quieto (mismo cuadro, sin colapso).
+      uOrder: { value: reduced ? 1 : 0 },
     }),
     [originTex, reduced]
   );
@@ -409,6 +471,14 @@ export default function ParticleField({
     simUniforms.uScroll.value = THREE.MathUtils.damp(simUniforms.uScroll.value, p, 6, d);
     simUniforms.uTime.value = state.clock.elapsedTime;
     simUniforms.uDelta.value = d;
+
+    // EL COLAPSO: la nebulosa se resuelve en el grafo al entrar del hero a la 1ª sección.
+    // page 0.05 → 0.30 mapea a uOrder 0 → 1. Bajo reduced-motion se queda en 1 (grafo quieto).
+    if (!reduced) {
+      const target = THREE.MathUtils.clamp((p - 0.05) / 0.25, 0, 1);
+      const smoothTarget = target * target * (3 - 2 * target); // smoothstep
+      simUniforms.uOrder.value = THREE.MathUtils.damp(simUniforms.uOrder.value, smoothTarget, 5, d);
+    }
 
     // --- PING-PONG: leo de uno, escribo en el otro. Nunca el mismo.
     const read = swap.current === 0 ? fboA : fboB;
