@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment, Lightformer, ContactShadows, PerspectiveCamera } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import Laptop from "./Laptop";
+import LaptopGLB from "./LaptopGLB";
 
 /**
  * Escena 3D real (WebGL). El "wow" viene de los reflejos del entorno moviéndose sobre
@@ -39,7 +39,7 @@ export default function Scene3D({ mode }: { mode: "hero" | "showcase" }) {
           <Lightformer intensity={1.2} position={[0, -3, 3]} scale={[8, 1, 1]} color="#94a3b8" />
         </Environment>
 
-        <Laptop mode={mode} />
+        <LaptopGLB mode={mode} />
 
         {/* Sombra de contacto: lo ancla al suelo (sin esto "flota" y se ve barato) */}
         <ContactShadows
