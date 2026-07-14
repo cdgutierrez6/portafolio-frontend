@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { type Locale } from "@/lib/types";
 import { useEffect, useRef } from "react";
-import { motion, useScroll, useTransform, useReducedMotion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useTransform, useReducedMotion, useMotionValue, useSpring } from "framer-motion";
 
 interface Props {
   personal: { name: string; title: string; bio: string; photoUrl: string | null; email: string; githubUrl: string | null; linkedinUrl: string | null; cvUrl: string | null };
@@ -17,22 +17,41 @@ export default function Hero({ personal, t, locale, animated }: Props) {
   const heroRef = useRef<HTMLElement>(null);
   const reduce = useReducedMotion();
 
-  // Scroll-linked parallax: hero top hits viewport top (0) -> hero scrolled fully out (1)
-  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  // Scroll progress driven MANUALLY. framer-motion's useScroll({target}) did not update its
+  // measurement in this layout (scrollYProgress stayed 0), so we read the hero's own position:
+  // 0 = hero pinned at viewport top, 1 = hero scrolled one screenful up. Bulletproof + verifiable.
+  const scrollProg = useMotionValue(0);
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el || reduce) return;
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const r = el.getBoundingClientRect();
+      scrollProg.set(Math.min(Math.max(-r.top / Math.max(r.height, 1), 0), 1));
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(update); };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    update();
+    return () => { window.removeEventListener("scroll", onScroll); if (raf) cancelAnimationFrame(raf); };
+  }, [reduce, scrollProg]);
 
-  // Foreground photo layer — moves more + subtle scale up (feels closer to the viewer)
-  const photoY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, -70]);
-  const photoScale = useTransform(scrollYProgress, [0, 1], reduce ? [1, 1] : [1, 1.06]);
+  // Foreground photo — clearly visible: rises, scales up and tilts back in 3D as you scroll.
+  const photoY = useTransform(scrollProg, [0, 1], reduce ? [0, 0] : [0, -150]);
+  const photoScale = useTransform(scrollProg, [0, 1], reduce ? [1, 1] : [1, 1.14]);
+  const photoRotXScroll = useTransform(scrollProg, [0, 1], reduce ? [0, 0] : [0, 16]);
 
-  // Mid text layer — moves less, fades only as it leaves the viewport (stays readable in view)
-  const textY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, -30]);
-  const textOpacity = useTransform(scrollYProgress, [0, 1], reduce ? [1, 1] : [1, 0.55]);
+  // Mid text layer — parallax + fade as it leaves the viewport (readable while in view).
+  const textY = useTransform(scrollProg, [0, 1], reduce ? [0, 0] : [0, -80]);
+  const textOpacity = useTransform(scrollProg, [0, 1], reduce ? [1, 1] : [1, 0.25]);
 
-  // Pointer 3D tilt on the photo (adds depth at rest; springs smooth the motion)
+  // Pointer 3D tilt on the photo (adds depth at rest; springs smooth the motion).
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
-  const rotX = useSpring(useTransform(my, [-0.5, 0.5], reduce ? [0, 0] : [10, -10]), { stiffness: 150, damping: 18 });
+  const rotXPointer = useSpring(useTransform(my, [-0.5, 0.5], reduce ? [0, 0] : [10, -10]), { stiffness: 150, damping: 18 });
   const rotY = useSpring(useTransform(mx, [-0.5, 0.5], reduce ? [0, 0] : [-12, 12]), { stiffness: 150, damping: 18 });
+  // Combine the scroll-driven tilt-back with the pointer tilt on the same axis.
+  const rotX = useTransform([photoRotXScroll, rotXPointer], ([s, p]) => (s as number) + (p as number));
 
   // Rect cached on enter (mouse only) so the hot pointermove handler avoids a layout read.
   const photoRectRef = useRef<DOMRect | null>(null);
