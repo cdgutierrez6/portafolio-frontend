@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { type Locale } from "@/lib/types";
 import { useEffect, useRef } from "react";
+import { motion, useScroll, useTransform, useReducedMotion, useMotionValue, useSpring } from "framer-motion";
 
 interface Props {
   personal: { name: string; title: string; bio: string; photoUrl: string | null; email: string; githubUrl: string | null; linkedinUrl: string | null; cvUrl: string | null };
@@ -13,6 +14,42 @@ interface Props {
 
 export default function Hero({ personal, t, locale, animated }: Props) {
   const titleRef = useRef<HTMLSpanElement>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const reduce = useReducedMotion();
+
+  // Scroll-linked parallax: hero top hits viewport top (0) -> hero scrolled fully out (1)
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+
+  // Foreground photo layer — moves more + subtle scale up (feels closer to the viewer)
+  const photoY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, -70]);
+  const photoScale = useTransform(scrollYProgress, [0, 1], reduce ? [1, 1] : [1, 1.06]);
+
+  // Mid text layer — moves less, fades only as it leaves the viewport (stays readable in view)
+  const textY = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : [0, -30]);
+  const textOpacity = useTransform(scrollYProgress, [0, 1], reduce ? [1, 1] : [1, 0.55]);
+
+  // Pointer 3D tilt on the photo (adds depth at rest; springs smooth the motion)
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rotX = useSpring(useTransform(my, [-0.5, 0.5], reduce ? [0, 0] : [10, -10]), { stiffness: 150, damping: 18 });
+  const rotY = useSpring(useTransform(mx, [-0.5, 0.5], reduce ? [0, 0] : [-12, 12]), { stiffness: 150, damping: 18 });
+
+  // Rect cached on enter (mouse only) so the hot pointermove handler avoids a layout read.
+  const photoRectRef = useRef<DOMRect | null>(null);
+  const handlePhotoPointerEnter = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (reduce || e.pointerType !== "mouse") return;
+    photoRectRef.current = e.currentTarget.getBoundingClientRect();
+  };
+  const handlePhotoPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (reduce || e.pointerType !== "mouse") return;
+    const rect = photoRectRef.current ?? e.currentTarget.getBoundingClientRect();
+    mx.set((e.clientX - rect.left) / rect.width - 0.5);
+    my.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+  const handlePhotoPointerLeave = () => {
+    mx.set(0);
+    my.set(0);
+  };
 
   useEffect(() => {
     if (!animated || !titleRef.current) return;
@@ -43,9 +80,9 @@ export default function Hero({ personal, t, locale, animated }: Props) {
   }, [animated]);
 
   return (
-    <section id="hero" aria-label={locale === "es" ? "Presentación" : "Introduction"} style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "8rem 1.5rem 4rem", position: "relative", zIndex: 10 }}>
+    <section ref={heroRef} id="hero" aria-label={locale === "es" ? "Presentación" : "Introduction"} style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "8rem 1.5rem 4rem", position: "relative", zIndex: 10, perspective: "1200px" }}>
       <div style={{ maxWidth: "1200px", width: "100%", display: "grid", gridTemplateColumns: "1fr auto", gap: "4rem", alignItems: "center" }} className="hero-grid">
-        <div>
+        <motion.div style={{ y: textY, opacity: textOpacity, willChange: "transform" }}>
           <div className="hero-anim" style={{ transitionDelay: "0ms", display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 1rem", borderRadius: "9999px", background: "color-mix(in srgb, var(--color-primary) 15%, transparent)", border: "1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)", marginBottom: "1.5rem", fontSize: "0.85rem", color: "var(--color-primary)", fontWeight: 600 }}>
             <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--color-secondary)", display: "inline-block", animation: "pulse 2s infinite" }} />
             {locale === "es" ? "Disponible para trabajar" : "Available for work"}
@@ -140,10 +177,15 @@ export default function Hero({ personal, t, locale, animated }: Props) {
               )}
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className={animated ? "hero-anim hero-photo-anim" : "hero-photo"} style={{ display: "flex", justifyContent: "center", transitionDelay: animated ? "800ms" : "0ms" }}>
-          <div style={{ position: "relative", width: "280px", height: "280px", borderRadius: "50%", padding: "4px", background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))", boxShadow: "0 0 60px color-mix(in srgb, var(--color-primary) 30%, transparent)" }}>
+        <div className={animated ? "hero-anim hero-photo-anim" : "hero-photo"} style={{ display: "flex", justifyContent: "center", transitionDelay: animated ? "800ms" : "0ms", transformStyle: "preserve-3d" }}>
+          <motion.div
+            onPointerEnter={handlePhotoPointerEnter}
+            onPointerMove={handlePhotoPointerMove}
+            onPointerLeave={handlePhotoPointerLeave}
+            onPointerCancel={handlePhotoPointerLeave}
+            style={{ position: "relative", width: "280px", height: "280px", borderRadius: "50%", padding: "4px", background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))", boxShadow: "0 0 60px color-mix(in srgb, var(--color-primary) 30%, transparent)", y: photoY, scale: photoScale, rotateX: rotX, rotateY: rotY, transformPerspective: 1200, transformStyle: "preserve-3d", willChange: "transform" }}>
             {personal.photoUrl ? (
               <Image src={personal.photoUrl} alt={locale === "es" ? `Foto de perfil de ${personal.name}` : `Profile photo of ${personal.name}`} fill style={{ borderRadius: "50%", objectFit: "cover" }} />
             ) : (
@@ -151,7 +193,7 @@ export default function Hero({ personal, t, locale, animated }: Props) {
                 👨‍💻
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
       </div>
 
