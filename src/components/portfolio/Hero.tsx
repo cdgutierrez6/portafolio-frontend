@@ -4,6 +4,7 @@ import Image from "next/image";
 import { type Locale } from "@/lib/types";
 import { useEffect, useRef } from "react";
 import { motion, useTransform, useReducedMotion, useMotionValue, useSpring } from "framer-motion";
+import Scene3DClient from "@/components/three/Scene3DClient";
 
 interface Props {
   personal: { name: string; title: string; bio: string; photoUrl: string | null; email: string; githubUrl: string | null; linkedinUrl: string | null; cvUrl: string | null };
@@ -100,7 +101,10 @@ export default function Hero({ personal, t, locale, animated }: Props) {
 
   return (
     <section ref={heroRef} id="hero" aria-label={locale === "es" ? "Presentación" : "Introduction"} style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "8rem 1.5rem 4rem", position: "relative", zIndex: 10, perspective: "1200px" }}>
-      <div style={{ maxWidth: "1200px", width: "100%", display: "grid", gridTemplateColumns: "1fr auto", gap: "4rem", alignItems: "center" }} className="hero-grid">
+      {/* Laptop 3D girando de fondo (WebGL). Se monta lazy y solo si hay motion permitido. */}
+      <Scene3DClient mode="hero" className="hero-3d-layer" />
+
+      <div style={{ maxWidth: "1200px", width: "100%", display: "grid", gridTemplateColumns: "1fr auto", gap: "4rem", alignItems: "center", position: "relative", zIndex: 1 }} className="hero-grid">
         <motion.div style={{ y: textY, opacity: textOpacity, willChange: "transform" }}>
           <div className="hero-anim" style={{ transitionDelay: "0ms", display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 1rem", borderRadius: "9999px", background: "color-mix(in srgb, var(--color-primary) 15%, transparent)", border: "1px solid color-mix(in srgb, var(--color-primary) 30%, transparent)", marginBottom: "1.5rem", fontSize: "0.85rem", color: "var(--color-primary)", fontWeight: 600 }}>
             <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--color-secondary)", display: "inline-block", animation: "pulse 2s infinite" }} />
@@ -223,6 +227,13 @@ export default function Hero({ personal, t, locale, animated }: Props) {
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
+        .hero-3d-layer {
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          pointer-events: none;
+          opacity: 0.9;
+        }
         .hero-name.reveal { transform: scale(0.95); filter: blur(4px); }
         .hero-name.reveal.visible { transform: scale(1); filter: none; }
         .hero-photo-anim.reveal { transform: scale(0.8); filter: blur(6px); }

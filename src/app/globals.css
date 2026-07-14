@@ -20,7 +20,10 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
-  overflow-x: hidden;
+  /* `clip` en vez de `hidden`: recorta el desborde horizontal IGUAL, pero NO crea un
+     contenedor de scroll — y por tanto NO rompe `position: sticky` en los descendientes
+     (la sección 3D depende de sticky). `overflow-x: hidden` sí lo rompía. */
+  overflow-x: clip;
 }
 
 .bg-gradient-animated {
@@ -618,7 +621,9 @@ body {
 }
 
 /* ── RESPONSIVE ── */
-html, body { overflow-x: hidden; max-width: 100%; }
+/* `clip` (no `hidden`): evita el scroll horizontal sin crear contenedor de scroll,
+   que es lo que rompía `position: sticky` de la sección 3D. */
+html, body { overflow-x: clip; max-width: 100%; }
 
 /* Previene overflow en cualquier hijo */
 * { min-width: 0; }

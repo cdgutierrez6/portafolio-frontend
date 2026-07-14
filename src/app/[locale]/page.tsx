@@ -1,6 +1,7 @@
 import { i18n, type Locale } from "@/lib/types";
 import { portfolioData } from "@/data/portfolio-data";
 import Hero from "@/components/portfolio/Hero";
+import Showcase3D from "@/components/portfolio/Showcase3D";
 import About from "@/components/portfolio/About";
 import Experience from "@/components/portfolio/Experience";
 import Skills from "@/components/portfolio/Skills";
@@ -80,6 +81,7 @@ export default function PortfolioPage({ params }: { params: { locale: string } }
       {data.settings.effectParticles && <ParticlesBg />}
       <div className={data.settings.effectGradient ? "bg-gradient-animated" : ""} style={{ minHeight: "100vh" }}>
         <Hero personal={data.personal} t={t} locale={locale} animated={data.settings.effectAnimations} />
+        <Showcase3D locale={locale} />
         <About personal={data.personal} t={t} experienceCount={data.experiences.length} animated={data.settings.effectAnimations} />
         <Experience experiences={data.experiences} t={t} animated={data.settings.effectAnimations} />
         <Skills skills={data.skills} t={t} animated={data.settings.effectAnimations} />
