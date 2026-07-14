@@ -1,54 +1,49 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Environment, Lightformer, ContactShadows, PerspectiveCamera } from "@react-three/drei";
+import { PerspectiveCamera } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import LaptopJourney from "./LaptopJourney";
+import ParticleField from "./ParticleField";
 
 /**
- * UN SOLO canvas WebGL, FIJO detrás de toda la página. El contenido scrollea por encima.
- * Antes había dos canvas aislados (hero y showcase) → la página se sentía 3D solo a ratos.
- * Con uno global, el laptop viaja por todas las secciones y la página entera se siente viva.
- * Además es MÁS barato: un contexto WebGL en vez de dos.
+ * UN canvas WebGL, FIJO detrás de toda la página. El contenido scrollea por encima.
  *
- * El entorno se hornea con <Lightformer> → reflejos de estudio SIN descargar un HDRI
- * externo, así no pelea con el CSP estricto del sitio.
+ * PIVOTE (2026-07-14): antes el protagonista era un laptop.glb — lectura "junior"
+ * ("hago cosas en un computador"). Se mató. Ahora el protagonista es el SISTEMA VIVO:
+ * un campo de partículas GPGPU (curl-noise) que representa el oficio real de Cristian
+ * —arquitectura de sistemas distribuidos / IA— y reacciona al mouse y al scroll.
+ * (El colapso caos→orden que lo convierte en un grafo de arquitectura es el paso 2.)
+ *
+ * El campo es AUTOILUMINADO (AdditiveBlending) → no necesita luces, ni Environment,
+ * ni ContactShadows. Solo Bloom para que las partículas "enciendan".
  */
 export default function Scene3DBackground() {
+  // Gama baja → menos partículas (16k en vez de 65k). El montaje del canvas ya se
+  // difiere tras el LCP en Scene3DBackgroundClient; aquí solo dimensionamos.
+  const size = useMemo(() => {
+    if (typeof navigator === "undefined") return 256;
+    const nav = navigator as Navigator & { deviceMemory?: number };
+    const weak = (nav.deviceMemory ?? 8) <= 4 || (navigator.hardwareConcurrency ?? 8) <= 4;
+    return weak ? 128 : 256;
+  }, []);
+
   return (
     <Canvas
-      dpr={[1, 1.75]}                    // acotado: en pantallas 3x un dpr libre funde la GPU móvil
-      gl={{ antialias: true, powerPreference: "high-performance", alpha: true }}
+      dpr={[1, 1.75]}
+      gl={{ antialias: false, powerPreference: "high-performance", alpha: true }}
       style={{ background: "transparent" }}
     >
-      <PerspectiveCamera makeDefault fov={33} position={[0, 0.5, 6.3]} />
+      {/* Cámara mirando hacia el interior de la nebulosa (el campo vive alrededor de z≈-1). */}
+      <PerspectiveCamera makeDefault fov={40} position={[0, 0, 6]} />
 
       <Suspense fallback={null}>
-        <ambientLight intensity={0.35} />
-        <directionalLight position={[4, 6, 3]} intensity={1.05} />
+        <ParticleField size={size} colorA="#6366F1" colorB="#10B981" />
 
-        {/* Estudio: barras de luz que se reflejan en el aluminio (colores de tu marca) */}
-        <Environment resolution={256}>
-          <Lightformer intensity={3} position={[0, 4, -6]} scale={[12, 2, 1]} color="#ffffff" />
-          <Lightformer intensity={2.2} position={[-5, 1, 2]} scale={[1, 6, 1]} color="#6366F1" />
-          <Lightformer intensity={1.8} position={[5, 1, 2]} scale={[1, 6, 1]} color="#10B981" />
-          <Lightformer intensity={1.2} position={[0, -3, 3]} scale={[8, 1, 1]} color="#94a3b8" />
-        </Environment>
-
-        <LaptopJourney />
-
-        <ContactShadows
-          position={[0, -1.35, 0]}
-          opacity={0.42}
-          scale={14}
-          blur={3}
-          far={5}
-          color="#000000"
-        />
-
+        {/* Bloom: hace que las partículas brillen. luminanceThreshold alto para que
+            NO se queme todo a blanco lechoso (additive + miles de puntos satura fácil). */}
         <EffectComposer enableNormalPass={false}>
-          <Bloom intensity={0.8} luminanceThreshold={0.55} luminanceSmoothing={0.25} mipmapBlur />
+          <Bloom intensity={0.7} luminanceThreshold={0.62} luminanceSmoothing={0.3} mipmapBlur />
         </EffectComposer>
       </Suspense>
     </Canvas>

@@ -17,6 +17,22 @@ export default function Contact({ personal, t, animated }: Props) {
   const titleRef = useReveal<HTMLHeadingElement>({ direction: "up", threshold: 0.3, animated });
   const formRef  = useReveal<HTMLDivElement>({ direction: "right", delay: 200, threshold: 0.15, animated });
 
+  /**
+   * Fallback REAL: abre el cliente de correo con el mensaje ya redactado.
+   * Se usa cuando el envío por servidor no está disponible (sin RESEND_API_KEY, o la
+   * API bloqueada por la protección SSO de los previews de Vercel). Antes, en ese caso,
+   * el formulario decía "enviado" y el mensaje NO llegaba a ninguna parte.
+   */
+  const openMailFallback = () => {
+    const body = `${form.message}\n\n—\n${form.senderName} <${form.senderEmail}>`;
+    const href =
+      `mailto:${personal.email}` +
+      `?subject=${encodeURIComponent(`[Portafolio] ${form.subject}`)}` +
+      `&body=${encodeURIComponent(body)}`;
+    window.location.href = href;
+    toast("✉️ Abrimos tu correo con el mensaje listo para enviar", { duration: 5000 });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
@@ -26,15 +42,25 @@ export default function Contact({ personal, t, animated }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+
       if (res.ok) {
         toast.success("✅ Mensaje enviado correctamente");
         setForm({ senderName: "", senderEmail: "", subject: "", message: "" });
-      } else {
-        const data = await res.json();
-        toast.error(data.error ?? "❌ Error al enviar");
+        return;
       }
+
+      // 400 (validación) y 429 (rate limit) son errores REALES del usuario: se muestran.
+      if (res.status === 400 || res.status === 429) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "❌ Error al enviar");
+        return;
+      }
+
+      // 503 (sin transporte configurado) o 5xx → el mensaje NO se perdería en silencio.
+      openMailFallback();
     } catch {
-      toast.error("❌ No se pudo conectar al servidor");
+      // Red caída, o la API interceptada por el SSO del preview → mismo fallback.
+      openMailFallback();
     } finally {
       setSending(false);
     }
