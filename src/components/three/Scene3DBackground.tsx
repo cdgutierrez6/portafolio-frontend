@@ -116,31 +116,32 @@ export default function Scene3DBackground() {
         <FaceReveal />
 
         {/* PISO REFLECTOR (idea de Cristian): refleja el cristal Y la cara → "magia" de
-            bodegón en todas las secciones (el canvas es fijo). Oscuro y sutil. */}
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.4, -1.5, 0]}>
+            bodegón. Cerca de los objetos (y=-0.95) y con más espejo para que el reflejo
+            SE VEA; el canvas es fijo → aparece en todas las secciones. */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.4, -0.2, 0]}>
           <planeGeometry args={[45, 45]} />
           <MeshReflectorMaterial
             resolution={512}
-            blur={[320, 110]}
-            mixBlur={1.1}
-            mixStrength={28}
-            roughness={0.82}
-            depthScale={1.0}
-            minDepthThreshold={0.35}
-            maxDepthThreshold={1.2}
-            color="#05060c"
+            blur={[220, 90]}
+            mixBlur={1.0}
+            mixStrength={38}
+            roughness={0.6}
+            depthScale={1.1}
+            minDepthThreshold={0.3}
+            maxDepthThreshold={1.1}
+            color="#06080f"
             metalness={0.55}
-            mirror={0.55}
+            mirror={0.6}
           />
         </mesh>
 
         {/* Sombra de contacto suave sobre el piso reflector → asienta el cristal. */}
         <ContactShadows
-          position={[2.7, -1.48, 0]}
-          scale={7}
+          position={[0.4, -0.18, 0]}
+          scale={8}
           blur={2.8}
-          opacity={0.35}
-          far={4.5}
+          opacity={0.28}
+          far={4}
           color="#000000"
         />
 

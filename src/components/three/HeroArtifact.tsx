@@ -54,9 +54,9 @@ export default function HeroArtifact() {
       {/* Softboxes fríos: definen el vidrio sobre negro con reflejos limpios (sin hotspot
           cálido). 2 rect grandes (key + fill) + 1 arriba = luz de estudio de producto. */}
       <Environment resolution={256}>
-        <Lightformer form="rect" intensity={1.5} color="#e8ecff" scale={[6, 2.4, 1]} position={[-5, 3, 2]} />
-        <Lightformer form="rect" intensity={1.15} color="#ffffff" scale={[6, 2.4, 1]} position={[5, -1.5, 2]} />
-        <Lightformer form="rect" intensity={0.8} color="#c7d2fe" scale={[3, 3, 1]} position={[0, 4, -3]} />
+        <Lightformer form="rect" intensity={1.1} color="#e8ecff" scale={[6, 2.4, 1]} position={[-5, 3, 2]} />
+        <Lightformer form="rect" intensity={0.85} color="#ffffff" scale={[6, 2.4, 1]} position={[5, -1.5, 2]} />
+        <Lightformer form="rect" intensity={0.6} color="#c7d2fe" scale={[3, 3, 1]} position={[0, 4, -3]} />
       </Environment>
 
       {/* Arriba-DERECHA → en el espacio negativo, sin pisar el titular colosal. */}
@@ -65,13 +65,13 @@ export default function HeroArtifact() {
           {/* UNA brasa interior SUAVE (additive, pequeña): un glow que el vidrio refracta
               y le da algo que "encender" sobre negro — no un balón sólido. El reveal del
               scroll la avivará. */}
-          <mesh scale={0.16}>
+          <mesh scale={0.14}>
             <sphereGeometry args={[1, 20, 20]} />
             <meshBasicMaterial
               color="#8ea6ff"
               toneMapped={false}
               transparent
-              opacity={0.8}
+              opacity={0.3}
               blending={THREE.AdditiveBlending}
               depthWrite={false}
             />
@@ -87,7 +87,7 @@ export default function HeroArtifact() {
             thickness={1.2}
             roughness={0.02}
             ior={1.5}
-            chromaticAberration={0.04}
+            chromaticAberration={0}
             anisotropy={0.1}
             distortion={0}
             distortionScale={0}
