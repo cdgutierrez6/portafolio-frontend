@@ -21,12 +21,18 @@ export const stage = {
 const clamp = THREE.MathUtils.clamp;
 const smooth = (x: number) => x * x * (3 - 2 * x);
 
+// Cada ~0.9 viewport de scroll = medio giro (180° = un intercambio de lados). El par
+// ORBITA CONTINUAMENTE por toda la página → cada sección tiene su rotación (no un swap y ya).
+const RAD_PER_VIEWPORT = Math.PI / 0.9;
+
 export function updateStage() {
   const hp = typeof window !== "undefined" ? window.scrollY / (window.innerHeight || 1) : 0;
   stage.hp = hp;
+  // swap = arranque suave del primer intercambio (para el reveal de la cara y la cámara).
   const b = smooth(clamp((hp - 0.6) / 0.7, 0, 1));
   stage.swap = b;
-  const ang = b * Math.PI; // 0 → 180°
+  // Ángulo CONTINUO: 0 hasta hp=0.6 (hero), luego crece con el scroll indefinidamente.
+  const ang = Math.max(0, hp - 0.6) * RAD_PER_VIEWPORT;
   // Cristal: derecha → (cruza al frente) → izquierda.
   stage.crystal.set(
     ORBIT_CENTER.x + ORBIT_R * Math.cos(ang),
