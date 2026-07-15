@@ -1,10 +1,29 @@
 "use client";
 
 import { Suspense, useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import ParticleField from "./ParticleField";
+import * as THREE from "three";
+import ParticleField, { pointerStore } from "./ParticleField";
+
+/**
+ * La cámara oscila SUAVE hacia el cursor → parallax de todo el grafo. Es el efecto
+ * "vivo" de mejor ratio impacto/coste (un lerp por frame, sin re-render de React).
+ * Bajo reduced-motion se queda quieta.
+ */
+function CameraRig({ reduced }: { reduced: boolean }) {
+  useFrame((state, dt) => {
+    if (reduced) return;
+    const d = Math.min(dt, 0.1);
+    const tx = pointerStore.nx * 0.55;
+    const ty = pointerStore.ny * 0.4;
+    state.camera.position.x = THREE.MathUtils.damp(state.camera.position.x, tx, 2.2, d);
+    state.camera.position.y = THREE.MathUtils.damp(state.camera.position.y, ty, 2.2, d);
+    state.camera.lookAt(0, 0, -1);
+  });
+  return null;
+}
 
 /**
  * UN canvas WebGL, FIJO detrás de toda la página. El contenido scrollea por encima.
@@ -43,7 +62,9 @@ export default function Scene3DBackground() {
         {/* Bloom: hace que las partículas brillen. luminanceThreshold alto para que
             NO se queme todo a blanco lechoso (additive + miles de puntos satura fácil). */}
         <EffectComposer enableNormalPass={false}>
-          <Bloom intensity={0.7} luminanceThreshold={0.62} luminanceSmoothing={0.3} mipmapBlur />
+          {/* threshold alto → SOLO las señales que viajan florecen (chiaroscuro);
+              los nodos/aristas en penumbra no se lavan. */}
+          <Bloom intensity={0.95} luminanceThreshold={0.72} luminanceSmoothing={0.28} mipmapBlur />
         </EffectComposer>
       </Suspense>
     </Canvas>

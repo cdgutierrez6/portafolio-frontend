@@ -177,26 +177,42 @@ const pointsVertex = /* glsl */ `
   uniform float uSize;
   uniform float uPixelRatio;
   uniform float uScroll;
+  uniform float uTime;
+  uniform float uSignalFlow;   // 0..1 intensidad de las señales (sube tras el colapso)
 
   attribute vec2  aRef;   // uv dentro de la textura de simulación
   attribute float aSeed;
+  attribute vec3  aEdge;  // (isEdge, t a lo largo de la arista, fase de la arista)
 
   varying float vLife;
   varying float vSeed;
   varying float vDepth;
+  varying float vSignal;  // 0..1 brillo de la señal en esta partícula
 
   void main() {
     vec4 sim = texture2D(uPositions, aRef);   // vertex texture fetch (WebGL2: OK siempre)
     vLife = sim.w;
     vSeed = aSeed;
 
+    // SEÑAL: una banda de luz recorre cada arista (dato viajando por un stream).
+    // head = posición actual del pulso en la arista (0..1), avanza con el tiempo + la
+    // fase propia de la arista. La partícula brilla si su t está cerca del head.
+    float sig = 0.0;
+    if (aEdge.x > 0.5) {
+      float head = fract(uTime * 0.18 + aEdge.z);
+      float dist = abs(fract(aEdge.y - head + 0.5) - 0.5); // distancia circular al head
+      sig = smoothstep(0.10, 0.0, dist);
+    }
+    vSignal = sig * uSignalFlow;
+
     vec4 mv = modelViewMatrix * vec4(sim.xyz, 1.0);
     vDepth = -mv.z;
     gl_Position = projectionMatrix * mv;
 
-    float size = uSize * (0.55 + aSeed * 0.9) * (0.85 + uScroll * 0.3);
+    // La partícula-señal engorda al pasar el pulso.
+    float size = uSize * (0.55 + aSeed * 0.9) * (0.85 + uScroll * 0.3) * (1.0 + vSignal * 1.6);
     // CLAMP DURO: sin esto, una partícula cerca de cámara se come el fill-rate del móvil.
-    gl_PointSize = clamp(size * uPixelRatio / max(vDepth, 0.1), 1.0, 5.0);
+    gl_PointSize = clamp(size * uPixelRatio / max(vDepth, 0.1), 1.0, 6.0);
   }
 `;
 
@@ -210,6 +226,7 @@ const pointsFragment = /* glsl */ `
   varying float vLife;
   varying float vSeed;
   varying float vDepth;
+  varying float vSignal;
 
   void main() {
     // Sprite redondo procedural: sin textura, sin discard.
@@ -224,7 +241,12 @@ const pointsFragment = /* glsl */ `
     alpha *= 1.0 - smoothstep(4.0, 13.0, vDepth);
 
     vec3 col = mix(uColorA, uColorB, vSeed);
-    gl_FragColor = vec4(col, alpha * uOpacity);
+    // El pulso vira a blanco-cálido y sube el brillo → la señal ENCIENDE la arista
+    // (chiaroscuro: base apagada, señal brillante).
+    col = mix(col, vec3(1.0, 1.0, 0.94), vSignal * 0.85);
+    float glow = 1.0 + vSignal * 2.6;
+
+    gl_FragColor = vec4(col * glow, alpha * uOpacity * (1.0 + vSignal * 1.4));
   }
 `;
 
@@ -277,32 +299,43 @@ function makeGraph() {
   return { nodes, edges };
 }
 
-function makeOriginTexture(size: number) {
+/**
+ * Genera la textura-origen (posiciones del grafo) Y el atributo por-partícula que
+ * permite las SEÑALES por las aristas:
+ *   edge[i] = (isEdge 0|1, t a lo largo de la arista 0..1, fase de la arista 0..1)
+ * La fase por-arista hace que la banda de luz recorra CADA arista coherente (no ruido).
+ */
+function makeGraphData(size: number) {
   const n = size * size;
   const data = new Float32Array(n * 4);
+  const edge = new Float32Array(n * 3);
   const { nodes, edges } = makeGraph();
 
-  // ~38% de partículas forman los NODOS (cúmulos densos y brillantes);
-  // el resto recorre las ARISTAS (líneas de luz por donde luego viajan las señales).
-  const nodeFrac = 0.38;
-  const jitterNode = 0.10;
+  const nodeFrac = 0.38; // 38% nodos densos, 62% recorren aristas
+  const jitterNode = 0.1;
   const jitterEdge = 0.045;
 
   for (let i = 0; i < n; i++) {
     let x: number, y: number, z: number;
     if (Math.random() < nodeFrac) {
       const nd = nodes[(Math.random() * nodes.length) | 0];
-      // gaussiana barata (suma de uniformes) → cúmulo redondo alrededor del nodo
       const g = () => (Math.random() + Math.random() + Math.random() - 1.5) * jitterNode;
       x = nd.x + g();
       y = nd.y + g();
       z = nd.z + g();
+      edge[i * 3 + 0] = 0; // no es arista
+      edge[i * 3 + 1] = 0;
+      edge[i * 3 + 2] = 0;
     } else {
-      const e = edges[(Math.random() * edges.length) | 0];
+      const ei = (Math.random() * edges.length) | 0;
+      const e = edges[ei];
       const t = Math.random();
       x = e[0].x + (e[1].x - e[0].x) * t + (Math.random() - 0.5) * jitterEdge;
       y = e[0].y + (e[1].y - e[0].y) * t + (Math.random() - 0.5) * jitterEdge;
       z = e[0].z + (e[1].z - e[0].z) * t + (Math.random() - 0.5) * jitterEdge;
+      edge[i * 3 + 0] = 1;
+      edge[i * 3 + 1] = t;
+      edge[i * 3 + 2] = (ei * 0.61803398875) % 1; // golden ratio → fases bien repartidas
     }
     data[i * 4 + 0] = x;
     data[i * 4 + 1] = y;
@@ -310,11 +343,11 @@ function makeOriginTexture(size: number) {
     data[i * 4 + 3] = Math.random(); // vida escalonada
   }
 
-  const tex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.FloatType);
-  tex.minFilter = THREE.NearestFilter;
-  tex.magFilter = THREE.NearestFilter;
-  tex.needsUpdate = true;
-  return tex;
+  const originTex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat, THREE.FloatType);
+  originTex.minFilter = THREE.NearestFilter;
+  originTex.magFilter = THREE.NearestFilter;
+  originTex.needsUpdate = true;
+  return { originTex, edge };
 }
 
 export default function ParticleField({
@@ -358,7 +391,8 @@ export default function ParticleField({
   const swap = useRef(0);
   const booted = useRef(false);
 
-  const originTex = useMemo(() => makeOriginTexture(size), [size]);
+  const graph = useMemo(() => makeGraphData(size), [size]);
+  const originTex = graph.originTex;
   useEffect(() => () => originTex.dispose(), [originTex]);
 
   // Escena aparte para la simulación (no cuelga del root → R3F no la dibuja sola).
@@ -392,9 +426,13 @@ export default function ParticleField({
       uSize: { value: 26 },
       uPixelRatio: { value: 1 },
       uScroll: { value: 0 },
+      uTime: { value: 0 },
+      uSignalFlow: { value: 0 },
       uColorA: { value: new THREE.Color(colorA) },
       uColorB: { value: new THREE.Color(colorB) },
-      uOpacity: { value: 0.55 },
+      // Base APAGADA (chiaroscuro): los nodos/aristas viven en penumbra; las señales
+      // que viajan son lo único que brilla fuerte → drama, no sopa lechosa.
+      uOpacity: { value: 0.36 },
     }),
     [originTex, colorA, colorB]
   );
@@ -417,11 +455,14 @@ export default function ParticleField({
     g.setAttribute("position", new THREE.BufferAttribute(positions, 3));
     g.setAttribute("aRef", new THREE.BufferAttribute(refs, 2));
     g.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
+    // aEdge (isEdge, t, fase) por-partícula → habilita las señales por las aristas.
+    // Alineado por índice i = y*size+x con la textura de origen (mismo orden).
+    g.setAttribute("aEdge", new THREE.BufferAttribute(graph.edge, 3));
     // El position attribute es basura (todo ceros) → three calcularía una bounding
     // sphere de radio 0 y frustum-culling BORRARÍA la nube entera. Bounds a mano.
     g.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, -1), 14);
     return g;
-  }, [size]);
+  }, [size, graph]);
 
   useEffect(() => () => geometry.dispose(), [geometry]);
 
@@ -494,6 +535,20 @@ export default function ParticleField({
     pointUniforms.uPositions.value = write.texture;
     pointUniforms.uScroll.value = simUniforms.uScroll.value;
     pointUniforms.uPixelRatio.value = state.gl.getPixelRatio();
+    pointUniforms.uTime.value = state.clock.elapsedTime;
+    // SEÑALES con estructura PEAK-END (Kahneman): tenues en el hero → ESTALLAN en el
+    // "reveal" del colapso (~page 0.2, el pico memorable) → se CALMAN a un latido legible
+    // para el resto. Un solo pico grande, no ruido brillante toda la página → el reveal
+    // pega más (contraste calma→PICO→calma) Y el texto sobre el grafo se lee.
+    // reduced-motion → sin señales viajando (a11y: cero movimiento parásito).
+    if (reduced) {
+      pointUniforms.uSignalFlow.value = 0;
+    } else {
+      const sc = simUniforms.uScroll.value;
+      const reveal = THREE.MathUtils.smoothstep(sc, 0.04, 0.2); // sube con el colapso
+      const calm = 1.0 - THREE.MathUtils.smoothstep(sc, 0.3, 0.6) * 0.6; // baja tras el reveal
+      pointUniforms.uSignalFlow.value = 0.15 + reveal * calm * 0.85;
+    }
 
     swap.current = swap.current === 0 ? 1 : 0;
   });
