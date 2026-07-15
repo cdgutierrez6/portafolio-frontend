@@ -87,14 +87,16 @@ export default function HeroArtifact() {
   useFrame((state, dt) => {
     const d = Math.min(dt, 0.1);
     if (mesh.current) {
-      mesh.current.rotation.y += d * 0.22;
-      mesh.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.25) * 0.25;
+      // Giro LENTO manteniéndolo VERTICAL (cristal alto/obelisco), no tumbado como disco.
+      mesh.current.rotation.y += d * 0.12;
+      mesh.current.rotation.x = 0.12 + Math.sin(state.clock.elapsedTime * 0.25) * 0.06;
+      mesh.current.rotation.z = 0.08;
     }
     // COMPOSICIÓN: el cristal es el protagonista del HERO y se RECOGE al scrollear
     // (deja de flotar sobre todas las secciones y da paso al grafo). page 0→~0.18.
     if (holder.current) {
       const hero = THREE.MathUtils.clamp(1 - scrollStore.page / 0.18, 0, 1);
-      const s = THREE.MathUtils.damp(holder.current.scale.x, 0.001 + hero, 6, d);
+      const s = THREE.MathUtils.damp(holder.current.scale.x, 0.001 + hero * 1.3, 6, d);
       holder.current.scale.setScalar(s);
     }
   });
@@ -104,11 +106,11 @@ export default function HeroArtifact() {
       {/* Entorno = HDRI real (reflejos ricos). environmentIntensity DOMADA para que las
           ventanas cálidas del HDRI no revienten a hot-spots amarillo/rojo. Sin Lightformers
           extra (sumaban energía → quemaban el cristal). */}
-      <Environment files={CITY_HDRI} resolution={256} environmentIntensity={0.5} />
+      <Environment files={CITY_HDRI} resolution={256} environmentIntensity={0.32} />
 
       {/* Desplazado a la DERECHA → vive en el espacio negativo junto al titular, no encima. */}
       <group ref={holder} position={[2.7, 0.15, 0]}>
-        <Float speed={1.2} rotationIntensity={0.4} floatIntensity={0.7}>
+        <Float speed={1.1} rotationIntensity={0.15} floatIntensity={0.6}>
           {/* El núcleo neuronal suspendido DENTRO del cristal (el vidrio lo refracta). */}
           <CrystalCore />
           {/* Shard facetado de Blender (cuarzo doble-terminado). scale 0.72 → más presencia. */}

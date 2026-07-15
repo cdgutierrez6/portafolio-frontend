@@ -6,8 +6,7 @@ import { PerspectiveCamera, MeshReflectorMaterial } from "@react-three/drei";
 import { EffectComposer, Bloom, DepthOfField, Noise, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
-import ParticleField, { pointerStore } from "./ParticleField";
-import ArchitectTrace from "./ArchitectTrace";
+import { pointerStore } from "./ParticleField";
 import HeroArtifact from "./HeroArtifact";
 import { scrollStore } from "./scroll-store";
 
@@ -99,15 +98,6 @@ export default function Scene3DBackground() {
     []
   );
 
-  // Gama baja → menos partículas (16k en vez de 65k). El montaje del canvas ya se
-  // difiere tras el LCP en Scene3DBackgroundClient; aquí solo dimensionamos.
-  const size = useMemo(() => {
-    if (typeof navigator === "undefined") return 256;
-    const nav = navigator as Navigator & { deviceMemory?: number };
-    const weak = (nav.deviceMemory ?? 8) <= 4 || (navigator.hardwareConcurrency ?? 8) <= 4;
-    return weak ? 128 : 256;
-  }, []);
-
   return (
     <Canvas
       dpr={[1, 1.75]}
@@ -131,18 +121,13 @@ export default function Scene3DBackground() {
       <CameraRig reduced={reduced} />
 
       <Suspense fallback={null}>
-        {/* PoC de fidelidad: artefacto de cristal refractivo con reflejos de estudio
-            (Environment+Lightformer) — la dirección nueva tras el feedback de Cristian. */}
+        {/* RESTA (2026-07-14): se mató el campo de partículas + el trazo (la "sopa"
+            abstracta). Referencias de Cristian = UN héroe limpio sobre fondo oscuro con
+            aire, no efecto sobre efecto. Queda solo el cristal como protagonista. */}
         <HeroArtifact />
 
-        <ParticleField size={size} colorA="#6366F1" colorB="#10B981" />
-
-        {/* EL TRAZO DEL ARQUITECTO: el objeto protagonista que recorre la pantalla y
-            muta de pose por sección. Hermano del campo → lo enciende el mismo Bloom. */}
-        <ArchitectTrace colorA="#818CF8" colorB="#34D399" />
-
         {/* SUELO REFLECTIVO: el reflejo "de agua/mármol pulido" que da composición de
-            bodegón caro — refleja el cristal y las señales del grafo. Oscuro y bajo. */}
+            bodegón caro — refleja el cristal. Oscuro y bajo. */}
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.6, -1]}>
           <planeGeometry args={[50, 50]} />
           <MeshReflectorMaterial
