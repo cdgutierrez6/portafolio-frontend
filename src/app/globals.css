@@ -802,13 +802,20 @@ html, body { overflow-x: clip; max-width: 100%; }
 }
 
 /* INTRO cinematográfica (video del stack). Desktop/landscape: cover full-bleed inmersivo.
-   Portrait/móvil: contain → se ve la composición COMPLETA del 16:9; como los bordes del
-   video funden a negro y el fondo del overlay es #050505, las franjas se leen como espacio,
-   no como letterbox. Así "cuadra bien" en ambos. */
+   Portrait/móvil: contain → se ve la composición COMPLETA del 16:9, y un poster ampliado y
+   DESENFOCADO rellena el resto de la pantalla vertical (patrón silenciadores) → premium,
+   no franjas negras. */
 .intro-video {
   object-fit: cover;
   object-position: center;
 }
+.intro-fill { display: none; }
 @media (orientation: portrait) {
   .intro-video { object-fit: contain; }
+  .intro-fill {
+    display: block;
+    background: #050505 url("/media/intro-poster.webp") center center / cover no-repeat;
+    filter: blur(26px) brightness(0.45) saturate(1.1);
+    transform: scale(1.25);
+  }
 }
