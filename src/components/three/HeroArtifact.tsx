@@ -5,11 +5,10 @@ import { useFrame } from "@react-three/fiber";
 import { Float, MeshTransmissionMaterial, Environment, Lightformer, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
-// HDRI real self-host: EXR decodificado a /public/hdri/city.exr (mismo origen).
-// OJO CSP: el data-URI base64 de @pmndrs/assets NO sirve — el EXRLoader hace fetch()
-// y la CSP estricta bloquea `fetch(data:)`. Un archivo same-origin lo permite `'self'`.
-// Es el desbloqueo #1 del look caro: el vidrio refleja un entorno real, no luces planas.
-const CITY_HDRI = "/hdri/city.exr";
+// Entorno PROCEDURAL de estudio (Lightformers blanco-frío) en vez de HDRI: los HDRIs
+// tienen fuentes de luz cálidas (sol/lámparas) que el cristal refleja como HOTSPOTS que
+// ACES vuelve amarillo/rojo. Softboxes fríos controlados → reflejos limpios y fríos,
+// cero hotspot cálido. CSP-safe, $0, sin fetch. (Patrón Awwwards para vidrio sobre negro.)
 
 /**
  * PROOF-OF-CONCEPT de FIDELIDAD (dirección nueva, 2026-07-14).
@@ -50,9 +49,13 @@ export default function HeroArtifact() {
       {/* Entorno = HDRI real (reflejos ricos). environmentIntensity DOMADA para que las
           ventanas cálidas del HDRI no revienten a hot-spots amarillo/rojo. Sin Lightformers
           extra (sumaban energía → quemaban el cristal). */}
-      {/* Sobre NEGRO el vidrio se define por sus REFLEJOS → environmentIntensity alta
-          (si es baja, el cristal desaparece). */}
-      <Environment files={CITY_HDRI} resolution={256} environmentIntensity={0.85} />
+      {/* Softboxes fríos: definen el vidrio sobre negro con reflejos limpios (sin hotspot
+          cálido). 2 rect grandes (key + fill) + 1 arriba = luz de estudio de producto. */}
+      <Environment resolution={256}>
+        <Lightformer form="rect" intensity={1.5} color="#e8ecff" scale={[6, 2.4, 1]} position={[-5, 3, 2]} />
+        <Lightformer form="rect" intensity={1.15} color="#ffffff" scale={[6, 2.4, 1]} position={[5, -1.5, 2]} />
+        <Lightformer form="rect" intensity={0.8} color="#c7d2fe" scale={[3, 3, 1]} position={[0, 4, -3]} />
+      </Environment>
 
       {/* Arriba-DERECHA → en el espacio negativo, sin pisar el titular colosal. */}
       <group position={[3.15, 0.75, 0]} scale={1.05}>

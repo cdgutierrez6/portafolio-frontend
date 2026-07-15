@@ -77,7 +77,7 @@ export default function Scene3DBackground() {
         alpha: true,
         // ACES: comprime los brillos como una cámara real (sin él, se clipean a blanco).
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 0.95,
+        toneMappingExposure: 0.82,
         outputColorSpace: THREE.SRGBColorSpace,
       }}
       style={{ background: "transparent" }}
