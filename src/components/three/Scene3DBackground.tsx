@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { PerspectiveCamera, ContactShadows } from "@react-three/drei";
+import { PerspectiveCamera, ContactShadows, MeshReflectorMaterial } from "@react-three/drei";
 import { EffectComposer, Bloom, DepthOfField, Noise, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
@@ -36,21 +36,22 @@ function CameraRig({ reduced }: { reduced: boolean }) {
     const px = reduced ? 0 : pointerStore.nx * 0.22;
     const py = reduced ? 0 : pointerStore.ny * 0.16;
 
-    const tx = THREE.MathUtils.lerp(0, 1.7, a) - 3.35 * b + px;  // Beat 2: track a la izq
-    const ty = THREE.MathUtils.lerp(-0.2, 0.6, a) - 0.35 * b + py;
-    const tz = THREE.MathUtils.lerp(6, 3.8, a) + 0.7 * b;        // dolly-in, luego pull-back leve
+    const tx = THREE.MathUtils.lerp(0, 1.7, a) - 2.0 * b + px;   // Beat 2: shift leve a la izq
+    const ty = THREE.MathUtils.lerp(-0.2, 0.6, a) - 0.2 * b + py;
+    const tz = THREE.MathUtils.lerp(6, 3.9, a) + 1.55 * b;       // dolly-in → PULL-BACK (encuadra AMBOS)
 
     state.camera.position.x = THREE.MathUtils.damp(state.camera.position.x, tx, 3, d);
     state.camera.position.y = THREE.MathUtils.damp(state.camera.position.y, ty, 3, d);
     state.camera.position.z = THREE.MathUtils.damp(state.camera.position.z, tz, 3, d);
 
-    // lookAt: Beat 0→1 al cristal, Beat 2 vira a la cara.
-    const laX = THREE.MathUtils.lerp(THREE.MathUtils.lerp(1.0, CRYSTAL.x, a), FACE_POS.x, b);
-    const laY = THREE.MathUtils.lerp(THREE.MathUtils.lerp(0.1, CRYSTAL.y, a), FACE_POS.y, b);
+    // lookAt: Beat 0→1 al cristal; Beat 2 vira al CENTRO → encuadra AMBOS (cristal a la
+    // derecha, cara a la izquierda), sin taparse ni hueco negro.
+    const laX = THREE.MathUtils.lerp(THREE.MathUtils.lerp(1.0, CRYSTAL.x, a), 0.4, b);
+    const laY = THREE.MathUtils.lerp(THREE.MathUtils.lerp(0.1, CRYSTAL.y, a), 0.4, b);
     lookAt.set(laX, laY, 0);
     state.camera.lookAt(lookAt);
 
-    // El DoF enfoca el SUJETO activo (cristal → cara).
+    // El DoF enfoca el sujeto que entra (la cara) sin perder el cristal (queda suave, presente).
     dofTarget.lerpVectors(CRYSTAL, FACE_POS, b);
   });
   return null;
@@ -107,12 +108,31 @@ export default function Scene3DBackground() {
             scroll entra a su beat y la cámara viaja hacia ella. */}
         <FaceReveal />
 
-        {/* Sombra de contacto → "planta" el cristal sin el piso-espejo caro. */}
+        {/* PISO REFLECTOR (idea de Cristian): refleja el cristal Y la cara → "magia" de
+            bodegón en todas las secciones (el canvas es fijo). Oscuro y sutil. */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.4, -1.5, 0]}>
+          <planeGeometry args={[45, 45]} />
+          <MeshReflectorMaterial
+            resolution={512}
+            blur={[320, 110]}
+            mixBlur={1.1}
+            mixStrength={28}
+            roughness={0.82}
+            depthScale={1.0}
+            minDepthThreshold={0.35}
+            maxDepthThreshold={1.2}
+            color="#05060c"
+            metalness={0.55}
+            mirror={0.55}
+          />
+        </mesh>
+
+        {/* Sombra de contacto suave sobre el piso reflector → asienta el cristal. */}
         <ContactShadows
-          position={[2.7, -1.25, 0]}
+          position={[2.7, -1.48, 0]}
           scale={7}
-          blur={2.6}
-          opacity={0.4}
+          blur={2.8}
+          opacity={0.35}
           far={4.5}
           color="#000000"
         />

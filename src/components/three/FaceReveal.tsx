@@ -15,7 +15,7 @@ import * as THREE from "three";
  *  - se REVELA de abajo-arriba con dither de ruido al entrar el Beat 2 (scroll 0.18→0.32).
  *  - comparte el mismo EffectComposer (DoF/grano/viñeta/ACES) → grade automático.
  */
-export const FACE_POS = new THREE.Vector3(-1.55, 0.2, 0.6);
+export const FACE_POS = new THREE.Vector3(-1.7, 0.2, 0.35);
 
 const faceVert = /* glsl */ `
   varying vec2 vUv;
