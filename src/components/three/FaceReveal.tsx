@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useVideoTexture } from "@react-three/drei";
 import * as THREE from "three";
+import { stage } from "./scene-stage";
 
 /**
  * BEAT 2 — "y este soy yo": el clip de Cristian como plano DENTRO de la escena R3F.
@@ -15,8 +16,6 @@ import * as THREE from "three";
  *  - se REVELA de abajo-arriba con dither de ruido al entrar el Beat 2 (scroll 0.18→0.32).
  *  - comparte el mismo EffectComposer (DoF/grano/viñeta/ACES) → grade automático.
  */
-export const FACE_POS = new THREE.Vector3(-1.7, 0.2, 0.35);
-
 const faceVert = /* glsl */ `
   varying vec2 vUv;
   void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
@@ -60,16 +59,20 @@ export default function FaceReveal() {
     [tex]
   );
 
+  const mesh = useRef<THREE.Mesh>(null);
+
   useFrame((_s, dt) => {
-    // Beat 2 en progreso de viewport: hp 0.6 → 1.3 (mismo mapeo que la cámara).
-    const hp = typeof window !== "undefined" ? window.scrollY / (window.innerHeight || 1) : 0;
-    const target = THREE.MathUtils.clamp((hp - 0.6) / 0.7, 0, 1);
+    // Se revela TEMPRANO en el Beat 2 (hp 0.6→0.85) para estar visible durante toda la
+    // órbita/intercambio; luego se mantiene.
+    const target = THREE.MathUtils.clamp((stage.hp - 0.6) / 0.25, 0, 1);
     uniforms.uReveal.value = THREE.MathUtils.damp(uniforms.uReveal.value, target, 6, Math.min(dt, 0.1));
+    // Posición del ESCENARIO compartido (órbita opuesta al cristal) + mira a la cámara.
+    if (mesh.current) mesh.current.position.copy(stage.face);
   });
 
   // Plano 9:16 (el clip es 720×1280 → ratio 0.5625).
   return (
-    <mesh position={FACE_POS}>
+    <mesh ref={mesh}>
       <planeGeometry args={[1.5, 1.5 / 0.5625]} />
       <shaderMaterial
         vertexShader={faceVert}

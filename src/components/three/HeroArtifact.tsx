@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Float, MeshTransmissionMaterial, Environment, Lightformer, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
+import { stage } from "./scene-stage";
 
 // Entorno PROCEDURAL de estudio (Lightformers blanco-frío) en vez de HDRI: los HDRIs
 // tienen fuentes de luz cálidas (sol/lámparas) que el cristal refleja como HOTSPOTS que
@@ -25,6 +26,7 @@ import * as THREE from "three";
  */
 export default function HeroArtifact() {
   const mesh = useRef<THREE.Mesh>(null);
+  const holder = useRef<THREE.Group>(null);
 
   // Shard tallado en Blender (cuarzo doble-terminado facetado). GLB self-host sin draco.
   const { nodes } = useGLTF("/models/shard.glb") as unknown as {
@@ -35,13 +37,13 @@ export default function HeroArtifact() {
   useFrame((state, dt) => {
     const d = Math.min(dt, 0.1);
     if (mesh.current) {
-      // Giro LENTO manteniéndolo VERTICAL (cristal alto/obelisco), no tumbado como disco.
-      mesh.current.rotation.y += d * 0.12;
+      // Giro LENTO; se acelera durante el intercambio orbital (Beat 2) → "rotating swap".
+      mesh.current.rotation.y += d * (0.12 + stage.swap * 0.9);
       mesh.current.rotation.x = 0.12 + Math.sin(state.clock.elapsedTime * 0.25) * 0.06;
       mesh.current.rotation.z = 0.08;
     }
-    // (El scroll-recede se eliminó: la PRESENCIA del cristal la manejará la cámara
-    //  cinematográfica del paso 2, no un scale-down que lo hacía desaparecer.)
+    // Posición del ESCENARIO compartido (órbita cristal↔cara en Beat 2).
+    if (holder.current) holder.current.position.copy(stage.crystal);
   });
 
   return (
@@ -58,7 +60,7 @@ export default function HeroArtifact() {
       </Environment>
 
       {/* Arriba-DERECHA → en el espacio negativo, sin pisar el titular colosal. */}
-      <group position={[3.15, 0.75, 0]} scale={1.05}>
+      <group ref={holder} scale={1.05}>
         <Float speed={1.1} rotationIntensity={0.15} floatIntensity={0.6}>
           {/* UNA brasa interior SUAVE (additive, pequeña): un glow que el vidrio refracta
               y le da algo que "encender" sobre negro — no un balón sólido. El reveal del

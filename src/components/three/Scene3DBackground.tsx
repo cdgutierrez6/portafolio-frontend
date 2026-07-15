@@ -8,13 +8,18 @@ import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
 import { pointerStore } from "./ParticleField";
 import HeroArtifact from "./HeroArtifact";
-import FaceReveal, { FACE_POS } from "./FaceReveal";
+import FaceReveal from "./FaceReveal";
+import { stage, updateStage, ORBIT_CENTER } from "./scene-stage";
 
-// Posición del cristal (héroe) — la cámara viaja hacia él.
-const CRYSTAL = new THREE.Vector3(3.15, 0.75, 0);
-// Foco del DoF: se interpola entre el cristal y la cara según el beat (sujeto activo).
-const dofTarget = new THREE.Vector3().copy(CRYSTAL);
+// Foco del DoF (sujeto activo). smoothstep = ease firma.
+const dofTarget = new THREE.Vector3().copy(stage.crystal);
 const smoothstep = (x: number) => x * x * (3 - 2 * x);
+
+/** Actualiza el escenario compartido UNA vez por frame, ANTES de que todos lo lean. */
+function StageDriver() {
+  useFrame(() => updateStage());
+  return null;
+}
 
 /**
  * CÁMARA CINEMATOGRÁFICA atada al scroll (el alma de las referencias: la cámara viaja).
@@ -29,30 +34,31 @@ function CameraRig({ reduced }: { reduced: boolean }) {
     const d = Math.min(dt, 0.1);
     // Progreso RELATIVO AL VIEWPORT (no a la página entera): el arco vive en los primeros
     // ~1.3 viewports de scroll. Beat 1 (dolly) 0→0.6, Beat 2 (track+cara) 0.6→1.3.
-    const hp = typeof window !== "undefined" ? window.scrollY / (window.innerHeight || 1) : 0;
-    const a = smoothstep(THREE.MathUtils.clamp(hp / 0.6, 0, 1));           // dolly al cristal
-    const b = smoothstep(THREE.MathUtils.clamp((hp - 0.6) / 0.7, 0, 1));   // track a la cara
+    const a = smoothstep(THREE.MathUtils.clamp(stage.hp / 0.6, 0, 1)); // dolly al cristal
+    const b = stage.swap;                                              // intercambio orbital
 
     const px = reduced ? 0 : pointerStore.nx * 0.22;
     const py = reduced ? 0 : pointerStore.ny * 0.16;
 
-    const tx = THREE.MathUtils.lerp(0, 1.7, a) - 2.0 * b + px;   // Beat 2: shift leve a la izq
-    const ty = THREE.MathUtils.lerp(-0.2, 0.6, a) - 0.2 * b + py;
-    const tz = THREE.MathUtils.lerp(6, 3.9, a) + 1.55 * b;       // dolly-in → PULL-BACK (encuadra AMBOS)
+    const tx = THREE.MathUtils.lerp(0, 1.5, a) - 1.5 * b + px;
+    const ty = THREE.MathUtils.lerp(-0.2, 0.5, a) + py;
+    const tz = THREE.MathUtils.lerp(6, 4.0, a) + 1.9 * b;  // dolly-in → pull-back (encuadra la órbita)
 
     state.camera.position.x = THREE.MathUtils.damp(state.camera.position.x, tx, 3, d);
     state.camera.position.y = THREE.MathUtils.damp(state.camera.position.y, ty, 3, d);
     state.camera.position.z = THREE.MathUtils.damp(state.camera.position.z, tz, 3, d);
 
-    // lookAt: Beat 0→1 al cristal; Beat 2 vira al CENTRO → encuadra AMBOS (cristal a la
-    // derecha, cara a la izquierda), sin taparse ni hueco negro.
-    const laX = THREE.MathUtils.lerp(THREE.MathUtils.lerp(1.0, CRYSTAL.x, a), 0.4, b);
-    const laY = THREE.MathUtils.lerp(THREE.MathUtils.lerp(0.1, CRYSTAL.y, a), 0.4, b);
-    lookAt.set(laX, laY, 0);
+    // lookAt: Beat 1 al cristal; Beat 2 al CENTRO de la órbita (encuadra el intercambio,
+    // cristal y cara cruzándose sin taparse ni hueco negro).
+    lookAt.set(
+      THREE.MathUtils.lerp(THREE.MathUtils.lerp(1.0, stage.crystal.x, a), ORBIT_CENTER.x, b),
+      THREE.MathUtils.lerp(THREE.MathUtils.lerp(0.1, stage.crystal.y, a), ORBIT_CENTER.y, b),
+      0
+    );
     state.camera.lookAt(lookAt);
 
-    // El DoF enfoca el sujeto que entra (la cara) sin perder el cristal (queda suave, presente).
-    dofTarget.lerpVectors(CRYSTAL, FACE_POS, b);
+    // DoF: cristal en Beat 1 → centro de la órbita durante el intercambio.
+    dofTarget.copy(stage.crystal).lerp(ORBIT_CENTER, b);
   });
   return null;
 }
@@ -99,6 +105,7 @@ export default function Scene3DBackground() {
           Rim que recorta el cristal contra el negro. */}
       <pointLight position={[-3.5, 2.5, 2]} intensity={90} color="#6E8BFF" />
 
+      <StageDriver />
       <CameraRig reduced={reduced} />
 
       <Suspense fallback={null}>
