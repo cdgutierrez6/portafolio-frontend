@@ -11,7 +11,6 @@ import Contact from "@/components/portfolio/Contact";
 import Footer from "@/components/ui/Footer";
 import SmoothScroll from "@/components/three/SmoothScroll";
 import Scene3DBackgroundClient from "@/components/three/Scene3DBackgroundClient";
-import AtmosphereVideo from "@/components/three/AtmosphereVideo";
 import HeroTitle from "@/components/portfolio/HeroTitle";
 import { titleLines } from "@/lib/hero-title";
 
@@ -85,19 +84,13 @@ export default function PortfolioPage({ params }: { params: { locale: string } }
       {/* Motor de scroll suave (Lenis) + barra de progreso superior */}
       <SmoothScroll />
 
-      {/* Capa de atmósfera (z0): video de red neuronal muy oscurecido/desenfocado, solo
-          en el hero (se desvanece al scrollear). Le da profundidad al campo vivo. */}
-      <AtmosphereVideo />
-
-      {/* ── ORDEN DE CAPAS (esto es lo que crea el efecto de 60fps) ──
-          z1  capa TRASERA del titular colosal   → el laptop pasa POR DELANTE
+      {/* ── ORDEN DE CAPAS (entrelazado del titular con el objeto 3D) ──
+          z1  capa TRASERA del titular colosal   → el cristal pasa POR DELANTE
           z2  canvas 3D global (fijo)
-          z3  capa FRONTAL del titular (recortada) + todo el contenido
-          Resultado: el laptop se ENTRELAZA con las letras. */}
+          z3  capa FRONTAL del titular (recortada) + todo el contenido */}
       <HeroTitle lines={titleLines(data.personal.name)} layer="back" />
 
-      {/* UN canvas 3D fijo detrás de toda la página. El laptop la recorre entera:
-          cambia de pose en cada sección, gira sin parar y abre/cierra la tapa. */}
+      {/* UN canvas 3D fijo detrás de la página: el CRISTAL como héroe limpio sobre negro. */}
       <Scene3DBackgroundClient />
 
       {/* Contenido (z 3), transparente para que el 3D se vea entre las secciones. */}
