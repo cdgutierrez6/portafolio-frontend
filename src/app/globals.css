@@ -800,3 +800,15 @@ html, body { overflow-x: clip; max-width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   .ht-line { transform: none !important; }
 }
+
+/* INTRO cinematográfica (video del stack). Desktop/landscape: cover full-bleed inmersivo.
+   Portrait/móvil: contain → se ve la composición COMPLETA del 16:9; como los bordes del
+   video funden a negro y el fondo del overlay es #050505, las franjas se leen como espacio,
+   no como letterbox. Así "cuadra bien" en ambos. */
+.intro-video {
+  object-fit: cover;
+  object-position: center;
+}
+@media (orientation: portrait) {
+  .intro-video { object-fit: contain; }
+}

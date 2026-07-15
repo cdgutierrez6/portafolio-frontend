@@ -131,7 +131,7 @@ export default function LocaleLayout({
         <div className="bg-grid" aria-hidden="true" />
         <div className="bg-grain" aria-hidden="true" />
 
-        <Preloader />
+        <Preloader locale={locale} />
         <Navbar locale={locale} initials={initials} />
         <main>{children}</main>
         <Toaster

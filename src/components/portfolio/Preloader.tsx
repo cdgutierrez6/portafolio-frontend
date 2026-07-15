@@ -1,150 +1,157 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { markIntroDone } from "./intro-state";
 
 /**
- * Lo primero que se ve. No es decoración: es lo que fija el tono antes de la página
- * (thewatch.60fps abre con un "Now loading"; Ducati con un "START EXPERIENCE").
+ * INTRO CINEMATOGRÁFICA — reemplaza el contador 0→100 por el video del stack (nebulosa).
  *
- * Contador 0→100 + línea de progreso, y al terminar una CORTINA que se abre en dos
- * mitades revelando el hero. Luego avisa (markIntroDone) para que el titular entre.
- *
- * Disciplina:
- *  - Techo duro de ~1.6s: un preloader que se eterniza es una fuga de visitantes.
- *  - prefers-reduced-motion → se salta entero, sin animación.
- *  - Bloquea el scroll mientras dura (si no, el usuario scrollea a ciegas).
+ * - Video a pantalla completa con object-fit: cover → ENCUADRA BIEN en móvil (portrait)
+ *   y en desktop (landscape): recorta los lados del 16:9, y como la acción vive en el
+ *   centro (la nebulosa/nodos), se ve completo en ambos.
+ * - Al terminar hace HAND-OFF al hero con un crossfade (markIntroDone dispara el titular).
+ * - Skippable, UNA vez por sesión (sessionStorage), y reduced-motion → directo al hero.
+ * - TECHO DURO: si el video se cuelga, se bloquea o el tab está oculto (autoplay pausado),
+ *   igual pasa al hero a los ~11.5s. Nunca atrapa al visitante (adiós al bug del contador
+ *   congelado que dependía del rAF).
  */
-export default function Preloader() {
-  const root = useRef<HTMLDivElement>(null);
-  const top = useRef<HTMLDivElement>(null);
-  const bottom = useRef<HTMLDivElement>(null);
-  const bar = useRef<HTMLDivElement>(null);
-  const [n, setN] = useState(0);
+const CAP_MS = 11500; // video 10s + margen de hand-off
+
+export default function Preloader({ locale = "es" }: { locale?: string }) {
+  const video = useRef<HTMLVideoElement>(null);
+  const finished = useRef(false);
+  const [fading, setFading] = useState(false);
   const [gone, setGone] = useState(false);
+
+  // Cierre de la intro: hero arranca, overlay hace crossfade y se desmonta.
+  const finish = useCallback(() => {
+    if (finished.current) return;
+    finished.current = true;
+    markIntroDone(); // el hero lanza su titular cinético durante el fade
+    setFading(true);
+    window.setTimeout(() => {
+      document.body.style.overflow = "";
+      setGone(true);
+    }, 850);
+  }, []);
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) {
+    const seen = sessionStorage.getItem("introSeen") === "1";
+
+    // Saltar entero: sin animación o ya vista esta sesión → hero directo (sin flash largo).
+    if (reduce || seen) {
       markIntroDone();
       setGone(true);
       return;
     }
-
+    sessionStorage.setItem("introSeen", "1");
     document.body.style.overflow = "hidden";
 
-    const counter = { v: 0 };
-    const tl = gsap.timeline();
+    // Techo duro pase lo que pase.
+    const cap = window.setTimeout(finish, CAP_MS);
 
-    // Contador + barra (el número sube con un ease, no lineal: se siente "vivo").
-    tl.to(counter, {
-      v: 100,
-      duration: 1.15,
-      ease: "power2.inOut",
-      onUpdate: () => {
-        const v = Math.round(counter.v);
-        setN(v);
-        if (bar.current) bar.current.style.transform = `scaleX(${v / 100})`;
-      },
-    });
-
-    // CORTINA: dos mitades que se abren. El hero aparece por el medio.
-    tl.to([top.current, bottom.current], {
-      scaleY: 0,
-      duration: 0.9,
-      ease: "power4.inOut",
-      stagger: 0.06,
-    }, "+=0.12");
-
-    tl.call(() => {
-      document.body.style.overflow = "";
-      markIntroDone();      // ← el Hero arranca su titular cinético aquí
-    }, undefined, "-=0.45");
-
-    tl.call(() => setGone(true));
+    // Intentar reproducir; si el autoplay se bloquea (raro con muted+playsInline),
+    // no atrapar: hand-off suave.
+    const v = video.current;
+    if (v) v.play().catch(() => window.setTimeout(finish, 400));
 
     return () => {
-      tl.kill();
+      window.clearTimeout(cap);
       document.body.style.overflow = "";
     };
-  }, []);
+  }, [finish]);
 
   if (gone) return null;
 
+  const skipLabel = locale === "en" ? "Skip intro" : "Saltar intro";
+
   return (
     <div
-      ref={root}
       aria-hidden="true"
-      style={{ position: "fixed", inset: 0, zIndex: 9999, pointerEvents: "none" }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        background: "#050505",
+        opacity: fading ? 0 : 1,
+        transform: fading ? "scale(1.06)" : "scale(1)",
+        transition: "opacity 0.8s ease, transform 0.9s ease",
+        pointerEvents: fading ? "none" : "auto",
+        overflow: "hidden",
+      }}
     >
-      {/* Mitad superior */}
-      <div
-        ref={top}
+      <video
+        ref={video}
+        className="intro-video"
+        // webm primero (más liviano, Chrome/FF), mp4 de respaldo (Safari).
+        poster="/media/intro-poster.webp"
+        muted
+        playsInline
+        autoPlay
+        preload="auto"
+        onEnded={finish}
+        onError={finish}
         style={{
           position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "50.5%",
-          background: "#050505",
-          transformOrigin: "50% 0%",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          pointerEvents: "none",
         }}
-      />
-      {/* Mitad inferior */}
-      <div
-        ref={bottom}
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: "50.5%",
-          background: "#050505",
-          transformOrigin: "50% 100%",
-        }}
-      />
+      >
+        <source src="/media/intro.webm" type="video/webm" />
+        <source src="/media/intro.mp4" type="video/mp4" />
+      </video>
 
-      {/* Contador + barra, centrados (viven sobre la cortina) */}
+      {/* Viñeta sutil: hunde los bordes a negro para que funda con el fondo #07080d
+          de la página en el hand-off (no un corte de caja de video). */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "1.25rem",
-          opacity: n >= 100 ? 0 : 1,
-          transition: "opacity 0.25s ease",
+          pointerEvents: "none",
+          background:
+            "radial-gradient(120% 120% at 50% 45%, transparent 55%, rgba(5,5,5,0.55) 100%)",
+        }}
+      />
+
+      {/* Saltar intro — siempre disponible (no atrapar a quien ya la vio / tiene prisa). */}
+      <button
+        type="button"
+        onClick={finish}
+        style={{
+          position: "absolute",
+          bottom: "clamp(1rem, 4vh, 2.25rem)",
+          right: "clamp(1rem, 5vw, 2.5rem)",
+          zIndex: 2,
+          padding: "0.5rem 1rem",
+          fontFamily: "var(--font-display), sans-serif",
+          fontSize: "0.72rem",
+          fontWeight: 600,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+          color: "rgba(242,242,242,0.72)",
+          background: "rgba(255,255,255,0.04)",
+          border: "1px solid rgba(255,255,255,0.14)",
+          borderRadius: "999px",
+          backdropFilter: "blur(6px)",
+          cursor: "pointer",
+          transition: "color 0.2s ease, border-color 0.2s ease, background 0.2s ease",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = "#F2F2F2";
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.32)";
+          e.currentTarget.style.background = "rgba(255,255,255,0.08)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = "rgba(242,242,242,0.72)";
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)";
+          e.currentTarget.style.background = "rgba(255,255,255,0.04)";
         }}
       >
-        <span
-          style={{
-            fontFamily: "var(--font-display), sans-serif",
-            fontSize: "clamp(3.5rem, 11vw, 9rem)",
-            fontWeight: 900,
-            letterSpacing: "-0.03em",
-            lineHeight: 1,
-            color: "#F2F2F2",
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {String(n).padStart(3, "0")}
-        </span>
-        <div style={{ width: "min(280px, 40vw)", height: "1px", background: "#2a2a2e", overflow: "hidden" }}>
-          <div
-            ref={bar}
-            style={{
-              height: "100%",
-              width: "100%",
-              transformOrigin: "0 50%",
-              transform: "scaleX(0)",
-              background: "linear-gradient(90deg, var(--color-primary), var(--color-secondary))",
-            }}
-          />
-        </div>
-      </div>
+        {skipLabel} ↓
+      </button>
     </div>
   );
 }
