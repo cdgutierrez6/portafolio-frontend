@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Float, MeshTransmissionMaterial, Environment, Lightformer } from "@react-three/drei";
 import * as THREE from "three";
+import { scrollStore } from "./scroll-store";
 
 // HDRI real self-host: EXR decodificado a /public/hdri/city.exr (mismo origen).
 // OJO CSP: el data-URI base64 de @pmndrs/assets NO sirve — el EXRLoader hace fetch()
@@ -26,18 +27,25 @@ const CITY_HDRI = "/hdri/city.exr";
  */
 export default function HeroArtifact() {
   const mesh = useRef<THREE.Mesh>(null);
+  const holder = useRef<THREE.Group>(null);
 
   useFrame((state, dt) => {
-    if (!mesh.current) return;
     const d = Math.min(dt, 0.1);
-    mesh.current.rotation.y += d * 0.22;
-    mesh.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.25) * 0.25;
+    if (mesh.current) {
+      mesh.current.rotation.y += d * 0.22;
+      mesh.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.25) * 0.25;
+    }
+    // COMPOSICIÓN: el cristal es el protagonista del HERO y se RECOGE al scrollear
+    // (deja de flotar sobre todas las secciones y da paso al grafo). page 0→~0.18.
+    if (holder.current) {
+      const hero = THREE.MathUtils.clamp(1 - scrollStore.page / 0.18, 0, 1);
+      const s = THREE.MathUtils.damp(holder.current.scale.x, 0.001 + hero * 1.5, 6, d);
+      holder.current.scale.setScalar(s);
+    }
   });
 
   return (
     <>
-      {/* Entorno PROCEDURAL: los Lightformers son las "luces de estudio" que se reflejan
-          en el cristal. Sin archivo HDRI → CSP-safe. resolution baja = barato. */}
       {/* Entorno = HDRI real de ciudad (reflejos ricos en el vidrio). Encima, 2 softboxes
           blancos como catchlights de estudio que recortan las aristas del cristal. */}
       <Environment files={CITY_HDRI} resolution={256}>
@@ -45,11 +53,13 @@ export default function HeroArtifact() {
         <Lightformer form="rect" intensity={1.5} color="#dbeafe" scale={[4, 1.2, 1]} position={[3, -1, 3]} />
       </Environment>
 
-      <Float speed={1.2} rotationIntensity={0.4} floatIntensity={0.7}>
-        <mesh ref={mesh} scale={1.5}>
-          {/* Icosaedro sin subdividir = 20 caras planas → se lee como gema tallada.
-              (v2: reemplazar por un shard facetado de Blender — "El Núcleo".) */}
-          <icosahedronGeometry args={[1, 0]} />
+      {/* Desplazado a la DERECHA → vive en el espacio negativo junto al titular, no encima. */}
+      <group ref={holder} position={[2.7, 0.15, 0]}>
+        <Float speed={1.2} rotationIntensity={0.4} floatIntensity={0.7}>
+          <mesh ref={mesh}>
+            {/* Icosaedro sin subdividir = 20 caras planas → se lee como gema tallada.
+                (v2: reemplazar por un shard facetado de Blender — "El Núcleo".) */}
+            <icosahedronGeometry args={[1, 0]} />
           {/* Parámetros con RANGO DISCIPLINADO (la sobredosis = sello de slop):
               aberración 0.04 (no 0.7), sin distortion (mata el wobble de gelatina),
               samples/resolution altos para refracción limpia, backside para grosor real. */}
@@ -70,8 +80,9 @@ export default function HeroArtifact() {
             attenuationColor="#cdd7ff"
             attenuationDistance={3.2}
           />
-        </mesh>
-      </Float>
+          </mesh>
+        </Float>
+      </group>
     </>
   );
 }

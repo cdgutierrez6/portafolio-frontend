@@ -3,7 +3,8 @@
 import { Suspense, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { PerspectiveCamera } from "@react-three/drei";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, DepthOfField, Noise, Vignette } from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
 import ParticleField, { pointerStore } from "./ParticleField";
 import ArchitectTrace from "./ArchitectTrace";
@@ -92,9 +93,14 @@ export default function Scene3DBackground() {
         {/* Bloom: hace que las partículas brillen. luminanceThreshold alto para que
             NO se queme todo a blanco lechoso (additive + miles de puntos satura fácil). */}
         <EffectComposer enableNormalPass={false}>
-          {/* Bloom SELECTIVO: threshold alto para que florezcan SOLO las señales emissive
-              del grafo, NO el vidrio (con ACES + este umbral el cristal ya no revienta). */}
+          {/* CAPA FOTOGRÁFICA (lo que convierte un render en una "toma de cine"):
+              DoF enfoca el cristal → el campo de partículas detrás cae en bokeh (jerarquía);
+              Bloom selectivo para las señales; grano ISO sutil; viñeta que centra la mirada. */}
+          <DepthOfField target={[2.7, 0.15, 0]} focalLength={0.03} bokehScale={2.5} height={480} />
           <Bloom intensity={0.7} luminanceThreshold={0.9} luminanceSmoothing={0.2} mipmapBlur />
+          {/* Grano SUTIL (≤8%): ISO fotográfico, no ruido de TV. 0.35 machacaba el cristal. */}
+          <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={0.06} />
+          <Vignette eskil={false} offset={0.32} darkness={0.5} />
         </EffectComposer>
       </Suspense>
     </Canvas>
