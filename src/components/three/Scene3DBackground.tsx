@@ -92,6 +92,17 @@ export default function Scene3DBackground() {
     return coarse || small || weak;
   }, []);
 
+  // GATE de ENCUADRE (distinto al de rendimiento): pantalla angosta/táctil → el viewport
+  // vertical hace que en el cruce de la órbita el cristal (que queda AL FRENTE) luzca
+  // gigante y TAPE la cara. Se encoge el cristal SOLO aquí (no en desktop, que se ve bien).
+  const isMobile = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return (
+      window.matchMedia("(pointer: coarse)").matches ||
+      window.matchMedia("(max-width: 768px)").matches
+    );
+  }, []);
+
   return (
     <Canvas
       dpr={lowPerf ? [1, 1] : [1, 1.75]}
@@ -120,7 +131,7 @@ export default function Scene3DBackground() {
       <CameraRig reduced={reduced} />
 
       <Suspense fallback={null}>
-        <HeroArtifact lowPerf={lowPerf} />
+        <HeroArtifact lowPerf={lowPerf} isMobile={isMobile} />
 
         {/* Beat 2: la cara de Cristian (plano-video luma-key) — invisible hasta que el
             scroll entra a su beat y la cámara viaja hacia ella. */}

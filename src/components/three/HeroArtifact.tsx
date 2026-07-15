@@ -24,7 +24,13 @@ import { stage } from "./scene-stage";
  * Esto es un CENTRO de vidrio tallado (gema/artefacto). No es el diseño final: es la
  * prueba de que la técnica correcta salta de "línea pobre" a "objeto que se ve caro".
  */
-export default function HeroArtifact({ lowPerf = false }: { lowPerf?: boolean }) {
+export default function HeroArtifact({
+  lowPerf = false,
+  isMobile = false,
+}: {
+  lowPerf?: boolean;
+  isMobile?: boolean;
+}) {
   const mesh = useRef<THREE.Mesh>(null);
   const holder = useRef<THREE.Group>(null);
 
@@ -59,8 +65,10 @@ export default function HeroArtifact({ lowPerf = false }: { lowPerf?: boolean })
         <Lightformer form="rect" intensity={0.6} color="#c7d2fe" scale={[3, 3, 1]} position={[0, 4, -3]} />
       </Environment>
 
-      {/* Arriba-DERECHA → en el espacio negativo, sin pisar el titular colosal. */}
-      <group ref={holder} scale={1.05}>
+      {/* Arriba-DERECHA → en el espacio negativo, sin pisar el titular colosal.
+          En MÓVIL se encoge (~0.58) para que en el cruce de la órbita NO tape la cara
+          ni luzca gigante en el viewport angosto; en desktop queda con presencia (1.05). */}
+      <group ref={holder} scale={isMobile ? 0.58 : 1.05}>
         <Float speed={1.1} rotationIntensity={0.15} floatIntensity={0.6}>
           {/* UNA brasa interior SUAVE (additive, pequeña): un glow que el vidrio refracta
               y le da algo que "encender" sobre negro — no un balón sólido. El reveal del
