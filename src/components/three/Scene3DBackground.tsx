@@ -8,44 +8,50 @@ import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
 import { pointerStore } from "./ParticleField";
 import HeroArtifact from "./HeroArtifact";
-import { scrollStore } from "./scroll-store";
+import FaceReveal, { FACE_POS } from "./FaceReveal";
 
 // Posición del cristal (héroe) — la cámara viaja hacia él.
 const CRYSTAL = new THREE.Vector3(3.15, 0.75, 0);
+// Foco del DoF: se interpola entre el cristal y la cara según el beat (sujeto activo).
+const dofTarget = new THREE.Vector3().copy(CRYSTAL);
+const smoothstep = (x: number) => x * x * (3 - 2 * x);
 
 /**
  * CÁMARA CINEMATOGRÁFICA atada al scroll (el alma de las referencias: la cámara viaja).
  * BEAT 0 (page 0): plano abierto, cristal a la derecha, nombre a la izquierda.
- * BEAT 1 (page 0→0.18): DOLLY-IN — la cámara empuja hacia el cristal (z 6→3.8) y se
- *   acerca en X/Y, encuadrándolo como sujeto. Micro-parallax al cursor como capa sutil.
- * (Beats 2-3 —track a la cara / pull-back— entran con el video.)
+ * BEAT 1 (0→0.18): DOLLY-IN hacia el cristal (z 6→3.8), se encuadra como sujeto.
+ * BEAT 2 (0.18→0.32): TRACK lateral a la izquierda → la cara de Cristian (plano-video) se
+ *   revela y entra en foco; el cristal deriva al fondo (bokeh). "y este soy yo."
  */
 function CameraRig({ reduced }: { reduced: boolean }) {
   const lookAt = useMemo(() => new THREE.Vector3(), []);
   useFrame((state, dt) => {
     const d = Math.min(dt, 0.1);
-    const cp = THREE.MathUtils.clamp(scrollStore.page / 0.18, 0, 1);
-    const e = cp * cp * (3 - 2 * cp); // smoothstep (ease firma)
+    // Progreso RELATIVO AL VIEWPORT (no a la página entera): el arco vive en los primeros
+    // ~1.3 viewports de scroll. Beat 1 (dolly) 0→0.6, Beat 2 (track+cara) 0.6→1.3.
+    const hp = typeof window !== "undefined" ? window.scrollY / (window.innerHeight || 1) : 0;
+    const a = smoothstep(THREE.MathUtils.clamp(hp / 0.6, 0, 1));           // dolly al cristal
+    const b = smoothstep(THREE.MathUtils.clamp((hp - 0.6) / 0.7, 0, 1));   // track a la cara
 
     const px = reduced ? 0 : pointerStore.nx * 0.22;
     const py = reduced ? 0 : pointerStore.ny * 0.16;
 
-    const tx = THREE.MathUtils.lerp(0, 1.7, e) + px;      // deriva hacia el cristal
-    const ty = THREE.MathUtils.lerp(-0.2, 0.6, e) + py;
-    const tz = THREE.MathUtils.lerp(6, 3.8, e);           // dolly-in
+    const tx = THREE.MathUtils.lerp(0, 1.7, a) - 3.35 * b + px;  // Beat 2: track a la izq
+    const ty = THREE.MathUtils.lerp(-0.2, 0.6, a) - 0.35 * b + py;
+    const tz = THREE.MathUtils.lerp(6, 3.8, a) + 0.7 * b;        // dolly-in, luego pull-back leve
 
     state.camera.position.x = THREE.MathUtils.damp(state.camera.position.x, tx, 3, d);
     state.camera.position.y = THREE.MathUtils.damp(state.camera.position.y, ty, 3, d);
     state.camera.position.z = THREE.MathUtils.damp(state.camera.position.z, tz, 3, d);
 
-    // lookAt INTERPOLA: Beat 0 mira al centro-izq (el cristal cae a la derecha, el nombre
-    // respira) → Beat 1 se centra en el cristal al hacer dolly-in.
-    lookAt.set(
-      THREE.MathUtils.lerp(1.0, CRYSTAL.x, e),
-      THREE.MathUtils.lerp(0.1, CRYSTAL.y, e),
-      0
-    );
+    // lookAt: Beat 0→1 al cristal, Beat 2 vira a la cara.
+    const laX = THREE.MathUtils.lerp(THREE.MathUtils.lerp(1.0, CRYSTAL.x, a), FACE_POS.x, b);
+    const laY = THREE.MathUtils.lerp(THREE.MathUtils.lerp(0.1, CRYSTAL.y, a), FACE_POS.y, b);
+    lookAt.set(laX, laY, 0);
     state.camera.lookAt(lookAt);
+
+    // El DoF enfoca el SUJETO activo (cristal → cara).
+    dofTarget.lerpVectors(CRYSTAL, FACE_POS, b);
   });
   return null;
 }
@@ -97,6 +103,10 @@ export default function Scene3DBackground() {
       <Suspense fallback={null}>
         <HeroArtifact />
 
+        {/* Beat 2: la cara de Cristian (plano-video luma-key) — invisible hasta que el
+            scroll entra a su beat y la cámara viaja hacia ella. */}
+        <FaceReveal />
+
         {/* Sombra de contacto → "planta" el cristal sin el piso-espejo caro. */}
         <ContactShadows
           position={[2.7, -1.25, 0]}
@@ -111,7 +121,7 @@ export default function Scene3DBackground() {
             brillante, grano sutil, viñeta. (El grano pasará a gated-por-velocidad y el
             DoF a dinámico cuando entre la cámara scroll-driven.) */}
         <EffectComposer enableNormalPass={false}>
-          <DepthOfField target={[3.15, 0.75, 0]} focalLength={0.03} bokehScale={2.5} height={480} />
+          <DepthOfField target={dofTarget} focalLength={0.03} bokehScale={2.5} height={480} />
           <Bloom intensity={0.7} luminanceThreshold={0.9} luminanceSmoothing={0.2} mipmapBlur />
           <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={0.05} />
           <Vignette eskil={false} offset={0.3} darkness={0.55} />
