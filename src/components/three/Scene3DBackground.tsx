@@ -9,6 +9,57 @@ import * as THREE from "three";
 import ParticleField, { pointerStore } from "./ParticleField";
 import ArchitectTrace from "./ArchitectTrace";
 import HeroArtifact from "./HeroArtifact";
+import { scrollStore } from "./scroll-store";
+
+/* Caústicas procedurales: filamentos de luz refractada danzando en el suelo bajo el
+   cristal (el detalle que grita "render offline"). Plano additive con máscara radial. */
+const causticVert = /* glsl */ `
+  varying vec2 vUv;
+  void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }
+`;
+const causticFrag = /* glsl */ `
+  precision mediump float;
+  uniform float uTime; uniform float uFade; uniform vec3 uColor;
+  varying vec2 vUv;
+  void main() {
+    vec2 uv = (vUv - 0.5) * 2.0;
+    float mask = smoothstep(1.0, 0.1, length(uv));      // se desvanece hacia el borde
+    vec2 p = uv * 2.6;
+    for (int n = 1; n <= 4; n++) {
+      float fn = float(n);
+      p += 0.35 * vec2(sin(fn * p.y + uTime * 0.6), cos(fn * p.x + uTime * 0.5));
+    }
+    float c = 0.5 + 0.5 * sin(p.x * 3.0) * sin(p.y * 3.0);
+    c = pow(c, 4.0);                                     // afila los filamentos
+    gl_FragColor = vec4(uColor * (0.5 + c), c * mask * uFade * 0.85);
+  }
+`;
+
+function CausticProjection() {
+  const uniforms = useMemo(
+    () => ({ uTime: { value: 0 }, uFade: { value: 1 }, uColor: { value: new THREE.Color("#7fb2ff") } }),
+    []
+  );
+  useFrame((state, dt) => {
+    uniforms.uTime.value = state.clock.elapsedTime;
+    const hero = THREE.MathUtils.clamp(1 - scrollStore.page / 0.18, 0, 1);
+    uniforms.uFade.value = THREE.MathUtils.damp(uniforms.uFade.value, hero, 6, Math.min(dt, 0.1));
+  });
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[2.7, -2.55, -0.3]}>
+      <planeGeometry args={[7, 7]} />
+      <shaderMaterial
+        vertexShader={causticVert}
+        fragmentShader={causticFrag}
+        uniforms={uniforms}
+        transparent
+        depthWrite={false}
+        depthTest={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </mesh>
+  );
+}
 
 /**
  * La cámara oscila SUAVE hacia el cursor → parallax de todo el grafo. Es el efecto
@@ -108,6 +159,9 @@ export default function Scene3DBackground() {
             mirror={0.45}
           />
         </mesh>
+
+        {/* Caústicas danzando en el suelo bajo el cristal. */}
+        <CausticProjection />
 
         {/* Bloom: hace que las partículas brillen. luminanceThreshold alto para que
             NO se queme todo a blanco lechoso (additive + miles de puntos satura fácil). */}
