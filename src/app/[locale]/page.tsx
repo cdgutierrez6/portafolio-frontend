@@ -11,6 +11,7 @@ import Contact from "@/components/portfolio/Contact";
 import Footer from "@/components/ui/Footer";
 import SmoothScroll from "@/components/three/SmoothScroll";
 import Scene3DBackgroundClient from "@/components/three/Scene3DBackgroundClient";
+import AtmosphereVideo from "@/components/three/AtmosphereVideo";
 import HeroTitle from "@/components/portfolio/HeroTitle";
 import { titleLines } from "@/lib/hero-title";
 
@@ -83,6 +84,10 @@ export default function PortfolioPage({ params }: { params: { locale: string } }
     <>
       {/* Motor de scroll suave (Lenis) + barra de progreso superior */}
       <SmoothScroll />
+
+      {/* Capa de atmósfera (z0): video de red neuronal muy oscurecido/desenfocado, solo
+          en el hero (se desvanece al scrollear). Le da profundidad al campo vivo. */}
+      <AtmosphereVideo />
 
       {/* ── ORDEN DE CAPAS (esto es lo que crea el efecto de 60fps) ──
           z1  capa TRASERA del titular colosal   → el laptop pasa POR DELANTE

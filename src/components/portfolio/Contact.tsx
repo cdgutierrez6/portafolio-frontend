@@ -75,8 +75,25 @@ export default function Contact({ personal, t, animated }: Props) {
   ];
 
   return (
-    <section id="contact" className="section" aria-labelledby="contact-heading" style={{ position: "relative", zIndex: 10 }}>
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "0 1.5rem" }}>
+    <section id="contact" className="section" aria-labelledby="contact-heading" style={{ position: "relative", zIndex: 10, overflow: "hidden" }}>
+      {/* Cierre del arco (peak-end): "convergencia a un punto de luz". El sistema que
+          recorriste toda la página termina en un solo punto = la invitación a escribir. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          backgroundImage: "url(/media/close.webp)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: 0.7,
+          maskImage: "radial-gradient(ellipse at 50% 42%, #000 35%, transparent 80%)",
+          WebkitMaskImage: "radial-gradient(ellipse at 50% 42%, #000 35%, transparent 80%)",
+        }}
+      />
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "900px", margin: "0 auto", padding: "0 1.5rem" }}>
         <h2 id="contact-heading" ref={titleRef} className="section-title">{t.contact.title}</h2>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3rem", alignItems: "start" }} className="contact-grid">
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
