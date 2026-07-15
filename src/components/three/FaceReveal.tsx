@@ -60,14 +60,30 @@ export default function FaceReveal() {
   );
 
   const mesh = useRef<THREE.Mesh>(null);
+  // Elemento <video> subyacente para controlar play/pause por scroll.
+  const video = tex.image as HTMLVideoElement;
+  const lastHp = useRef(0);
+  const playUntil = useRef(2.4); // arranca reproduciendo ~2.4s
 
-  useFrame((_s, dt) => {
+  useFrame((state, dt) => {
+    const t = state.clock.elapsedTime;
     // Se revela TEMPRANO en el Beat 2 (hp 0.6→0.85) para estar visible durante toda la
     // órbita/intercambio; luego se mantiene.
     const target = THREE.MathUtils.clamp((stage.hp - 0.6) / 0.25, 0, 1);
     uniforms.uReveal.value = THREE.MathUtils.damp(uniforms.uReveal.value, target, 6, Math.min(dt, 0.1));
-    // Posición del ESCENARIO compartido (órbita opuesta al cristal) + mira a la cámara.
+    // Posición del ESCENARIO compartido (órbita opuesta al cristal).
     if (mesh.current) mesh.current.position.copy(stage.face);
+
+    // VIDEO POR SECCIÓN: reproduce mientras SCROLLEAS (+ coast ~2.4s al detenerte en una
+    // sección), luego se CONGELA; al scrollear SIGUE desde donde quedó (no reinicia).
+    if (video) {
+      const vel = Math.abs(stage.hp - lastHp.current) / Math.max(dt, 1e-4);
+      lastHp.current = stage.hp;
+      if (vel > 0.06) playUntil.current = t + 2.4; // scrolleando → extiende la ventana de play
+      const shouldPlay = t < playUntil.current;
+      if (shouldPlay && video.paused) video.play().catch(() => {});
+      else if (!shouldPlay && !video.paused) video.pause();
+    }
   });
 
   // Plano 9:16 (el clip es 720×1280 → ratio 0.5625).
