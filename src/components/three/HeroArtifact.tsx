@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Float, MeshTransmissionMaterial, Environment, Lightformer } from "@react-three/drei";
+import { Float, MeshTransmissionMaterial, Environment, Lightformer, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { scrollStore } from "./scroll-store";
 
@@ -29,6 +29,12 @@ export default function HeroArtifact() {
   const mesh = useRef<THREE.Mesh>(null);
   const holder = useRef<THREE.Group>(null);
 
+  // Shard tallado en Blender (cuarzo doble-terminado facetado). GLB self-host sin draco.
+  const { nodes } = useGLTF("/models/shard.glb") as unknown as {
+    nodes: Record<string, THREE.Mesh>;
+  };
+  const shardGeo = nodes.Shard?.geometry;
+
   useFrame((state, dt) => {
     const d = Math.min(dt, 0.1);
     if (mesh.current) {
@@ -39,7 +45,7 @@ export default function HeroArtifact() {
     // (deja de flotar sobre todas las secciones y da paso al grafo). page 0→~0.18.
     if (holder.current) {
       const hero = THREE.MathUtils.clamp(1 - scrollStore.page / 0.18, 0, 1);
-      const s = THREE.MathUtils.damp(holder.current.scale.x, 0.001 + hero * 1.5, 6, d);
+      const s = THREE.MathUtils.damp(holder.current.scale.x, 0.001 + hero, 6, d);
       holder.current.scale.setScalar(s);
     }
   });
@@ -56,10 +62,8 @@ export default function HeroArtifact() {
       {/* Desplazado a la DERECHA → vive en el espacio negativo junto al titular, no encima. */}
       <group ref={holder} position={[2.7, 0.15, 0]}>
         <Float speed={1.2} rotationIntensity={0.4} floatIntensity={0.7}>
-          <mesh ref={mesh}>
-            {/* Icosaedro sin subdividir = 20 caras planas → se lee como gema tallada.
-                (v2: reemplazar por un shard facetado de Blender — "El Núcleo".) */}
-            <icosahedronGeometry args={[1, 0]} />
+          {/* Shard facetado de Blender (cuarzo doble-terminado). scale 0.55 → ~2.5u de alto. */}
+          <mesh ref={mesh} geometry={shardGeo} scale={0.55}>
           {/* Parámetros con RANGO DISCIPLINADO (la sobredosis = sello de slop):
               aberración 0.04 (no 0.7), sin distortion (mata el wobble de gelatina),
               samples/resolution altos para refracción limpia, backside para grosor real. */}

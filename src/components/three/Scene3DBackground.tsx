@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { PerspectiveCamera } from "@react-three/drei";
+import { PerspectiveCamera, MeshReflectorMaterial } from "@react-three/drei";
 import { EffectComposer, Bloom, DepthOfField, Noise, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
@@ -89,6 +89,25 @@ export default function Scene3DBackground() {
         {/* EL TRAZO DEL ARQUITECTO: el objeto protagonista que recorre la pantalla y
             muta de pose por sección. Hermano del campo → lo enciende el mismo Bloom. */}
         <ArchitectTrace colorA="#818CF8" colorB="#34D399" />
+
+        {/* SUELO REFLECTIVO: el reflejo "de agua/mármol pulido" que da composición de
+            bodegón caro — refleja el cristal y las señales del grafo. Oscuro y bajo. */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -2.6, -1]}>
+          <planeGeometry args={[50, 50]} />
+          <MeshReflectorMaterial
+            resolution={512}
+            blur={[400, 200]}
+            mixBlur={1}
+            mixStrength={18}
+            roughness={0.85}
+            depthScale={1.1}
+            minDepthThreshold={0.4}
+            maxDepthThreshold={1.3}
+            color="#05070d"
+            metalness={0.6}
+            mirror={0.45}
+          />
+        </mesh>
 
         {/* Bloom: hace que las partículas brillen. luminanceThreshold alto para que
             NO se queme todo a blanco lechoso (additive + miles de puntos satura fácil). */}
