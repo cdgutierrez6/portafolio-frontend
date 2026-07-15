@@ -24,7 +24,7 @@ import { stage } from "./scene-stage";
  * Esto es un CENTRO de vidrio tallado (gema/artefacto). No es el diseño final: es la
  * prueba de que la técnica correcta salta de "línea pobre" a "objeto que se ve caro".
  */
-export default function HeroArtifact() {
+export default function HeroArtifact({ lowPerf = false }: { lowPerf?: boolean }) {
   const mesh = useRef<THREE.Mesh>(null);
   const holder = useRef<THREE.Group>(null);
 
@@ -37,8 +37,8 @@ export default function HeroArtifact() {
   useFrame((state, dt) => {
     const d = Math.min(dt, 0.1);
     if (mesh.current) {
-      // Giro LENTO; se acelera durante el intercambio orbital (Beat 2) → "rotating swap".
-      mesh.current.rotation.y += d * (0.12 + stage.swap * 0.9);
+      // Giro LENTO y nivelado (no marea); un toque más durante el intercambio.
+      mesh.current.rotation.y += d * (0.1 + stage.swap * 0.2);
       mesh.current.rotation.x = 0.12 + Math.sin(state.clock.elapsedTime * 0.25) * 0.06;
       mesh.current.rotation.z = 0.08;
     }
@@ -82,8 +82,8 @@ export default function HeroArtifact() {
               aberración 0.04 (no 0.7), sin distortion (mata el wobble de gelatina),
               samples/resolution altos para refracción limpia, backside para grosor real. */}
           <MeshTransmissionMaterial
-            samples={10}
-            resolution={512}
+            samples={lowPerf ? 4 : 10}
+            resolution={lowPerf ? 256 : 512}
             thickness={1.2}
             roughness={0.02}
             ior={1.5}

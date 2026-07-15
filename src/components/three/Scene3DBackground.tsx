@@ -17,7 +17,7 @@ const smoothstep = (x: number) => x * x * (3 - 2 * x);
 
 /** Actualiza el escenario compartido UNA vez por frame, ANTES de que todos lo lean. */
 function StageDriver() {
-  useFrame(() => updateStage());
+  useFrame((_s, dt) => updateStage(dt));
   return null;
 }
 
@@ -81,9 +81,20 @@ export default function Scene3DBackground() {
     []
   );
 
+  // GATE de rendimiento: móvil (pointer coarse / pantalla chica) o gama baja → menos carga
+  // (samples/resolución de transmisión, reflector liviano, sin DoF, dpr 1). Evita tirones.
+  const lowPerf = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const nav = navigator as Navigator & { deviceMemory?: number };
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const small = window.matchMedia("(max-width: 900px)").matches;
+    const weak = (nav.deviceMemory ?? 8) <= 4 || (navigator.hardwareConcurrency ?? 8) <= 4;
+    return coarse || small || weak;
+  }, []);
+
   return (
     <Canvas
-      dpr={[1, 1.75]}
+      dpr={lowPerf ? [1, 1] : [1, 1.75]}
       gl={{
         antialias: false,
         powerPreference: "high-performance",
@@ -109,7 +120,7 @@ export default function Scene3DBackground() {
       <CameraRig reduced={reduced} />
 
       <Suspense fallback={null}>
-        <HeroArtifact />
+        <HeroArtifact lowPerf={lowPerf} />
 
         {/* Beat 2: la cara de Cristian (plano-video luma-key) — invisible hasta que el
             scroll entra a su beat y la cámara viaja hacia ella. */}
@@ -121,7 +132,7 @@ export default function Scene3DBackground() {
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.4, -0.2, 0]}>
           <planeGeometry args={[45, 45]} />
           <MeshReflectorMaterial
-            resolution={512}
+            resolution={lowPerf ? 128 : 512}
             blur={[220, 90]}
             mixBlur={1.0}
             mixStrength={38}
@@ -145,15 +156,21 @@ export default function Scene3DBackground() {
           color="#000000"
         />
 
-        {/* Capa fotográfica (grade cine): DoF enfoca el cristal, Bloom sólo para lo más
-            brillante, grano sutil, viñeta. (El grano pasará a gated-por-velocidad y el
-            DoF a dinámico cuando entre la cámara scroll-driven.) */}
-        <EffectComposer enableNormalPass={false}>
-          <DepthOfField target={dofTarget} focalLength={0.03} bokehScale={2.5} height={480} />
-          <Bloom intensity={0.7} luminanceThreshold={0.9} luminanceSmoothing={0.2} mipmapBlur />
-          <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={0.05} />
-          <Vignette eskil={false} offset={0.3} darkness={0.55} />
-        </EffectComposer>
+        {/* Capa fotográfica (grade cine). El DoF (el efecto más caro) va SOLO en desktop;
+            en móvil/gama-baja se omite para no tumbar el frame-rate. */}
+        {lowPerf ? (
+          <EffectComposer enableNormalPass={false}>
+            <Bloom intensity={0.7} luminanceThreshold={0.9} luminanceSmoothing={0.2} mipmapBlur />
+            <Vignette eskil={false} offset={0.3} darkness={0.55} />
+          </EffectComposer>
+        ) : (
+          <EffectComposer enableNormalPass={false}>
+            <DepthOfField target={dofTarget} focalLength={0.03} bokehScale={2.5} height={480} />
+            <Bloom intensity={0.7} luminanceThreshold={0.9} luminanceSmoothing={0.2} mipmapBlur />
+            <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={0.05} />
+            <Vignette eskil={false} offset={0.3} darkness={0.55} />
+          </EffectComposer>
+        )}
       </Suspense>
     </Canvas>
   );
