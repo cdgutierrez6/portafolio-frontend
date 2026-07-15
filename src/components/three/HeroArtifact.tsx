@@ -52,18 +52,16 @@ export default function HeroArtifact() {
 
   return (
     <>
-      {/* Entorno = HDRI real de ciudad (reflejos ricos en el vidrio). Encima, 2 softboxes
-          blancos como catchlights de estudio que recortan las aristas del cristal. */}
-      <Environment files={CITY_HDRI} resolution={256}>
-        <Lightformer form="rect" intensity={2} color="#ffffff" scale={[4, 1.2, 1]} position={[-3, 2.5, 3]} />
-        <Lightformer form="rect" intensity={1.5} color="#dbeafe" scale={[4, 1.2, 1]} position={[3, -1, 3]} />
-      </Environment>
+      {/* Entorno = HDRI real (reflejos ricos). environmentIntensity DOMADA para que las
+          ventanas cálidas del HDRI no revienten a hot-spots amarillo/rojo. Sin Lightformers
+          extra (sumaban energía → quemaban el cristal). */}
+      <Environment files={CITY_HDRI} resolution={256} environmentIntensity={0.5} />
 
       {/* Desplazado a la DERECHA → vive en el espacio negativo junto al titular, no encima. */}
       <group ref={holder} position={[2.7, 0.15, 0]}>
         <Float speed={1.2} rotationIntensity={0.4} floatIntensity={0.7}>
-          {/* Shard facetado de Blender (cuarzo doble-terminado). scale 0.55 → ~2.5u de alto. */}
-          <mesh ref={mesh} geometry={shardGeo} scale={0.55}>
+          {/* Shard facetado de Blender (cuarzo doble-terminado). scale 0.72 → más presencia. */}
+          <mesh ref={mesh} geometry={shardGeo} scale={0.72}>
           {/* Parámetros con RANGO DISCIPLINADO (la sobredosis = sello de slop):
               aberración 0.04 (no 0.7), sin distortion (mata el wobble de gelatina),
               samples/resolution altos para refracción limpia, backside para grosor real. */}
@@ -80,9 +78,9 @@ export default function HeroArtifact() {
             temporalDistortion={0}
             transmission={1}
             backside
-            color="#ffffff"
-            attenuationColor="#cdd7ff"
-            attenuationDistance={3.2}
+            color="#eef2ff"
+            attenuationColor="#9db2ff"
+            attenuationDistance={1.4}
           />
           </mesh>
         </Float>

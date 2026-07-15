@@ -68,7 +68,7 @@ export default function Scene3DBackground() {
         // blanco puro (el reventón del cristal). ACES los comprime como una cámara real →
         // el look "foto de cine" en vez de "CGI barato / sRGB crudo".
         toneMapping: THREE.ACESFilmicToneMapping,
-        toneMappingExposure: 1.0,
+        toneMappingExposure: 0.8, // más bajo → ACES no empuja los brillos a amarillo/rojo
         outputColorSpace: THREE.SRGBColorSpace,
       }}
       style={{ background: "transparent" }}
