@@ -21,7 +21,7 @@ export default function HeroTitle({
   lines,
   layer,
 }: {
-  lines: [string, string];
+  lines: string[];
   layer: "back" | "front";
 }) {
   const wrap = useRef<HTMLDivElement>(null);

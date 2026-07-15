@@ -746,11 +746,13 @@ html, body { overflow-x: clip; max-width: 100%; }
 /* Detrás del canvas 3D → el laptop pasa POR DELANTE de estas letras */
 .hero-title-back { z-index: 1; }
 
-/* Delante del canvas, RECORTADO → el laptop pasa POR DETRÁS de la parte baja */
+/* Delante del canvas, RECORTADO → el trazo del arquitecto pasa POR DETRÁS de la
+   parte baja del titular y POR DELANTE de la alta (entrelazado). Con 3 líneas se
+   revela ~la mitad inferior; se afina al montar ArchitectTrace. */
 .hero-title-front {
   z-index: 3;
-  -webkit-clip-path: inset(57% 0 0 0);
-          clip-path: inset(57% 0 0 0);
+  -webkit-clip-path: inset(55% 0 0 0);
+          clip-path: inset(55% 0 0 0);
 }
 
 .hero-title-inner {
@@ -769,9 +771,11 @@ html, body { overflow-x: clip; max-width: 100%; }
   display: block;
   font-family: var(--font-display), system-ui, sans-serif;
   font-weight: 900;
-  font-size: clamp(2.8rem, 12.6vw, 13rem);
-  line-height: 0.84;
-  letter-spacing: -0.048em;
+  /* 3 líneas apiladas (CRISTIAN / DANIEL / GUTIÉRREZ): un pelo más chico que las 2
+     líneas de antes para que las tres quepan recortadas por el viewport. */
+  font-size: clamp(2.3rem, 10.2vw, 10.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
   text-transform: uppercase;
   color: #F2F2F2;
   white-space: nowrap;

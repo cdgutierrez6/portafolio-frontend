@@ -6,6 +6,8 @@ import { PerspectiveCamera } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import ParticleField, { pointerStore } from "./ParticleField";
+import ArchitectTrace from "./ArchitectTrace";
+import HeroArtifact from "./HeroArtifact";
 
 /**
  * La cámara oscila SUAVE hacia el cursor → parallax de todo el grafo. Es el efecto
@@ -38,6 +40,13 @@ function CameraRig({ reduced }: { reduced: boolean }) {
  * ni ContactShadows. Solo Bloom para que las partículas "enciendan".
  */
 export default function Scene3DBackground() {
+  const reduced = useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    []
+  );
+
   // Gama baja → menos partículas (16k en vez de 65k). El montaje del canvas ya se
   // difiere tras el LCP en Scene3DBackgroundClient; aquí solo dimensionamos.
   const size = useMemo(() => {
@@ -50,21 +59,42 @@ export default function Scene3DBackground() {
   return (
     <Canvas
       dpr={[1, 1.75]}
-      gl={{ antialias: false, powerPreference: "high-performance", alpha: true }}
+      gl={{
+        antialias: false,
+        powerPreference: "high-performance",
+        alpha: true,
+        // FIX DE CAUSA RAÍZ (2026-07-14): sin ACES los valores brillantes se CLIPEAN a
+        // blanco puro (el reventón del cristal). ACES los comprime como una cámara real →
+        // el look "foto de cine" en vez de "CGI barato / sRGB crudo".
+        toneMapping: THREE.ACESFilmicToneMapping,
+        toneMappingExposure: 1.0,
+        outputColorSpace: THREE.SRGBColorSpace,
+      }}
       style={{ background: "transparent" }}
     >
       {/* Cámara mirando hacia el interior de la nebulosa (el campo vive alrededor de z≈-1). */}
       <PerspectiveCamera makeDefault fov={40} position={[0, 0, 6]} />
 
+      {/* La cámara oscila hacia el cursor → parallax de TODO (campo + trazo). */}
+      <CameraRig reduced={reduced} />
+
       <Suspense fallback={null}>
+        {/* PoC de fidelidad: artefacto de cristal refractivo con reflejos de estudio
+            (Environment+Lightformer) — la dirección nueva tras el feedback de Cristian. */}
+        <HeroArtifact />
+
         <ParticleField size={size} colorA="#6366F1" colorB="#10B981" />
+
+        {/* EL TRAZO DEL ARQUITECTO: el objeto protagonista que recorre la pantalla y
+            muta de pose por sección. Hermano del campo → lo enciende el mismo Bloom. */}
+        <ArchitectTrace colorA="#818CF8" colorB="#34D399" />
 
         {/* Bloom: hace que las partículas brillen. luminanceThreshold alto para que
             NO se queme todo a blanco lechoso (additive + miles de puntos satura fácil). */}
         <EffectComposer enableNormalPass={false}>
-          {/* threshold alto → SOLO las señales que viajan florecen (chiaroscuro);
-              los nodos/aristas en penumbra no se lavan. */}
-          <Bloom intensity={0.95} luminanceThreshold={0.72} luminanceSmoothing={0.28} mipmapBlur />
+          {/* Bloom SELECTIVO: threshold alto para que florezcan SOLO las señales emissive
+              del grafo, NO el vidrio (con ACES + este umbral el cristal ya no revienta). */}
+          <Bloom intensity={0.7} luminanceThreshold={0.9} luminanceSmoothing={0.2} mipmapBlur />
         </EffectComposer>
       </Suspense>
     </Canvas>
