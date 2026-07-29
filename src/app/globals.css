@@ -819,3 +819,75 @@ html, body { overflow-x: clip; max-width: 100%; }
     transform: scale(1.25);
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FALLBACK LANDSCAPE-COMPACTO (teléfono en horizontal / ventana muy baja)
+   ---------------------------------------------------------------------------
+   Adjudicado por el pipeline senior (frontend-senior build → tech-lead +
+   security + qa → llm-judge 4.5/5): enfoque de FLUJO, no overlay escalado.
+
+   PORQUÉ: el hero cinematográfico es una composición de 100vh con 3 bandas en
+   position:absolute (eyebrow arriba · titular colosal centrado por
+   align-items:center · bloque inferior abajo). El titular .ht-line se mide por
+   ANCHO: clamp(...,10.2vw,...). En un teléfono en horizontal el viewport es MUY
+   ANCHO pero MUY BAJO (~300-430px de alto): el titular sigue gigante (vw) y no
+   hay altura para las 3 bandas → colisionan entre sí, con el navbar fijo y con
+   la bio. No existía regla para viewport bajo (todos los @media previos son
+   max-width / portrait) — ese era el hueco.
+
+   ESTRATEGIA (ADITIVA — no toca desktop/tablet/portrait; REGLA #6.0/#9): SOLO
+   cuando el alto es escaso, el overlay absoluto se desarma y el hero pasa a
+   FLUJO normal → las bandas se apilan en orden DOM y es IMPOSIBLE que se solapen
+   (garantía por construcción, no por calibrar magic numbers). El titular se
+   re-dimensiona por ALTURA, el eje escaso en landscape, en vez de por ancho.
+
+   BREAKPOINT (orientation: landscape) and (max-height: 600px):
+     · NO afecta: desktop 1080p (alto 1080), laptop 768/720, iPad landscape
+       (alto ≥768). El corte 600 vive en el hueco seguro entre teléfonos
+       landscape (~300-430 alto) y tablets landscape (≥768 alto).
+     · SÍ cubre: cualquier teléfono en horizontal (y una ventana desktop
+       deliberadamente aplastada, donde el flujo es igual de deseable).
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (orientation: landscape) and (max-height: 600px) {
+  /* min-height:100vh está INLINE en <section id="hero"> (Hero.tsx) → sólo un
+     !important de autor vence al estilo inline.
+     padding-top 5.5rem despeja el navbar fixed —mide ~3.5rem: padding 0.85rem*2
+     + toggle/logo ~1.5rem, ver Navbar.tsx— con ~2rem de aire. Si cambia la
+     altura del navbar, revisar este valor. */
+  #hero {
+    min-height: auto !important;
+    padding: 5.5rem 0 2.5rem;
+  }
+
+  /* Las 3 bandas dejan de estar ancladas y entran al flujo (eyebrow → titular →
+     bloque inferior). #hero .hero-eyebrow / #hero .hero-bottom (especificidad
+     1,1,0) vencen al <style> inline de Hero.tsx (0,1,0), que por orden de fuente
+     ganaría a globals.css — sin el #hero el fix NO aplicaría a esas dos bandas. */
+  #hero .hero-eyebrow { position: static; top: auto; margin: 0 auto 1.1rem; }
+  #hero .hero-bottom  { position: static; bottom: auto; margin: 1.6rem auto 0; }
+
+  /* La capa TRASERA del titular (page.tsx, anclada top:0/height:100vh, centrada)
+     en flujo quedaría como un titular fantasma desalineado → se oculta. La
+     FRONTAL conserva el <h1> real (SEO/lector de pantalla) → sin costo de a11y. */
+  .hero-title-back { display: none; }
+
+  /* La capa frontal deja de ser overlay de 100vh y muestra el titular COMPLETO
+     (sin el clip-path que en modo cine revela sólo la mitad baja). */
+  .hero-title-layer.hero-title-front {
+    position: static;
+    height: auto;
+    -webkit-clip-path: none;
+            clip-path: none;
+  }
+
+  /* NÚCLEO DEL FIX: dimensionar por ALTURA, no por ancho (vw), para que el
+     titular quepa al bajar el alto. Doble declaración: vh (soporte universal)
+     como fallback y svh (estable cuando colapsa la barra de URL móvil) donde
+     exista. Ancho landscape ≥667px y "GUTIÉRREZ" (~9 letras a 3rem/48px máx
+     ≈ 260px) → white-space:nowrap NO desborda. */
+  .ht-line {
+    font-size: clamp(1.6rem, 8.5vh, 3rem);
+    font-size: clamp(1.6rem, 8.5svh, 3rem);
+    line-height: 1.02;
+  }
+}
