@@ -1,6 +1,7 @@
 import { i18n, type Locale } from "@/lib/types";
 import { portfolioData } from "@/data/portfolio-data";
 import Hero from "@/components/portfolio/Hero";
+import Showcase3D from "@/components/portfolio/Showcase3D";
 import About from "@/components/portfolio/About";
 import Experience from "@/components/portfolio/Experience";
 import Skills from "@/components/portfolio/Skills";
@@ -8,7 +9,10 @@ import Projects from "@/components/portfolio/Projects";
 import Education from "@/components/portfolio/Education";
 import Contact from "@/components/portfolio/Contact";
 import Footer from "@/components/ui/Footer";
-import ParticlesBg from "@/components/ui/ParticlesBg";
+import SmoothScroll from "@/components/three/SmoothScroll";
+import Scene3DBackgroundClient from "@/components/three/Scene3DBackgroundClient";
+import HeroTitle from "@/components/portfolio/HeroTitle";
+import { titleLines } from "@/lib/hero-title";
 
 function getData(locale: Locale) {
   const { settings, personalInfo, experiences, skills, education, courses, projects } = portfolioData;
@@ -77,9 +81,22 @@ export default function PortfolioPage({ params }: { params: { locale: string } }
 
   return (
     <>
-      {data.settings.effectParticles && <ParticlesBg />}
-      <div className={data.settings.effectGradient ? "bg-gradient-animated" : ""} style={{ minHeight: "100vh" }}>
+      {/* Motor de scroll suave (Lenis) + barra de progreso superior */}
+      <SmoothScroll />
+
+      {/* ── ORDEN DE CAPAS (entrelazado del titular con el objeto 3D) ──
+          z1  capa TRASERA del titular colosal   → el cristal pasa POR DELANTE
+          z2  canvas 3D global (fijo)
+          z3  capa FRONTAL del titular (recortada) + todo el contenido */}
+      <HeroTitle lines={titleLines(data.personal.name)} layer="back" />
+
+      {/* UN canvas 3D fijo detrás de la página: el CRISTAL como héroe limpio sobre negro. */}
+      <Scene3DBackgroundClient />
+
+      {/* Contenido (z 3), transparente para que el 3D se vea entre las secciones. */}
+      <div style={{ minHeight: "100vh", position: "relative", zIndex: 3 }}>
         <Hero personal={data.personal} t={t} locale={locale} animated={data.settings.effectAnimations} />
+        <Showcase3D locale={locale} />
         <About personal={data.personal} t={t} experienceCount={data.experiences.length} animated={data.settings.effectAnimations} />
         <Experience experiences={data.experiences} t={t} animated={data.settings.effectAnimations} />
         <Skills skills={data.skills} t={t} animated={data.settings.effectAnimations} />

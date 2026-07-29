@@ -1,7 +1,9 @@
 "use client";
 
+import { useRef } from "react";
 import { type Project } from "@/lib/types";
 import { useReveal } from "@/hooks/useReveal";
+import { motion, useMotionValue, useSpring, useTransform, useReducedMotion } from "framer-motion";
 
 const LANG_COLOR: Record<string, string> = {
   TypeScript: "#3178C6",
@@ -93,7 +95,39 @@ function ProjectCard({
   const ref = useReveal<HTMLDivElement>({ direction: index % 2 === 0 ? "left" : "right", delay: index * 100, threshold: 0.1, animated });
   const langColor = LANG_COLOR[project.language] ?? "var(--color-primary)";
 
+  // Subtle pointer tilt (max 6deg) on a wrapper node so it never collides with the
+  // card's reveal/hover transforms. Fully disabled under reduced-motion.
+  const reduce = useReducedMotion();
+  const mx = useMotionValue(0);
+  const my = useMotionValue(0);
+  const rotX = useSpring(useTransform(my, [-0.5, 0.5], reduce ? [0, 0] : [6, -6]), { stiffness: 150, damping: 18 });
+  const rotY = useSpring(useTransform(mx, [-0.5, 0.5], reduce ? [0, 0] : [-6, 6]), { stiffness: 150, damping: 18 });
+
+  // Rect cached on enter (mouse only) so the hot pointermove handler avoids a layout read.
+  const rectRef = useRef<DOMRect | null>(null);
+  const handlePointerEnter = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (reduce || e.pointerType !== "mouse") return;
+    rectRef.current = e.currentTarget.getBoundingClientRect();
+  };
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (reduce || e.pointerType !== "mouse") return;
+    const rect = rectRef.current ?? e.currentTarget.getBoundingClientRect();
+    mx.set((e.clientX - rect.left) / rect.width - 0.5);
+    my.set((e.clientY - rect.top) / rect.height - 0.5);
+  };
+  const handlePointerLeave = () => {
+    mx.set(0);
+    my.set(0);
+  };
+
   return (
+    <motion.div
+      onPointerEnter={handlePointerEnter}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
+      onPointerCancel={handlePointerLeave}
+      style={{ rotateX: rotX, rotateY: rotY, transformPerspective: 900, transformStyle: "preserve-3d", height: "100%" }}
+    >
     <div
       ref={ref}
       className="card"
@@ -102,6 +136,7 @@ function ProjectCard({
         display: "flex",
         flexDirection: "column",
         gap: "1rem",
+        height: "100%",
         borderTop: `3px solid ${project.accent}`,
         transition: "box-shadow 0.25s, transform 0.25s",
         position: "relative",
@@ -225,5 +260,6 @@ function ProjectCard({
         ) : null}
       </div>
     </div>
+    </motion.div>
   );
 }

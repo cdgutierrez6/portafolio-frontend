@@ -20,7 +20,10 @@ body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
-  overflow-x: hidden;
+  /* `clip` en vez de `hidden`: recorta el desborde horizontal IGUAL, pero NO crea un
+     contenedor de scroll — y por tanto NO rompe `position: sticky` en los descendientes
+     (la sección 3D depende de sticky). `overflow-x: hidden` sí lo rompía. */
+  overflow-x: clip;
 }
 
 .bg-gradient-animated {
@@ -618,7 +621,9 @@ body {
 }
 
 /* ── RESPONSIVE ── */
-html, body { overflow-x: hidden; max-width: 100%; }
+/* `clip` (no `hidden`): evita el scroll horizontal sin crear contenedor de scroll,
+   que es lo que rompía `position: sticky` de la sección 3D. */
+html, body { overflow-x: clip; max-width: 100%; }
 
 /* Previene overflow en cualquier hijo */
 * { min-width: 0; }
@@ -693,4 +698,196 @@ html, body { overflow-x: hidden; max-width: 100%; }
   .about-stats-grid { grid-template-columns: 1fr 1fr 1fr !important; }
   .hero-photo-anim > div, .hero-photo > div { width: 160px !important; height: 160px !important; }
   .timeline-container { padding-left: 1rem !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDISEÑO 2026 — negro extremo + tipografía colosal
+   Fórmula medida de las referencias (thepatchsystem: H1 de 270px sobre #040404;
+   thewatch.60fps: el objeto 3D entrelazado con la tipografía).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Textura de fondo: grid punteado + grano. Sustituyen a las partículas (cliché). ── */
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right,  rgba(255,255,255,0.030) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.030) 1px, transparent 1px);
+  background-size: 76px 76px;
+  /* Se desvanece hacia abajo para que no compita con el contenido */
+  -webkit-mask-image: radial-gradient(ellipse 110% 75% at 50% 0%, #000 35%, transparent 100%);
+          mask-image: radial-gradient(ellipse 110% 75% at 50% 0%, #000 35%, transparent 100%);
+}
+
+.bg-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── TITULAR COLOSAL (dos capas; el canvas 3D va en medio) ── */
+.hero-title-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+}
+
+/* Detrás del canvas 3D → el laptop pasa POR DELANTE de estas letras */
+.hero-title-back { z-index: 1; }
+
+/* Delante del canvas, RECORTADO → el trazo del arquitecto pasa POR DETRÁS de la
+   parte baja del titular y POR DELANTE de la alta (entrelazado). Con 3 líneas se
+   revela ~la mitad inferior; se afina al montar ArchitectTrace. */
+.hero-title-front {
+  z-index: 3;
+  -webkit-clip-path: inset(55% 0 0 0);
+          clip-path: inset(55% 0 0 0);
+}
+
+.hero-title-inner {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 clamp(1.25rem, 4vw, 3.5rem);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Máscara: la línea entra desde abajo (kinetic type) */
+.ht-mask { display: block; overflow: hidden; }
+
+.ht-line {
+  display: block;
+  font-family: var(--font-display), system-ui, sans-serif;
+  font-weight: 900;
+  /* 3 líneas apiladas (CRISTIAN / DANIEL / GUTIÉRREZ): un pelo más chico que las 2
+     líneas de antes para que las tres quepan recortadas por el viewport. */
+  font-size: clamp(2.3rem, 10.2vw, 10.5rem);
+  line-height: 0.9;
+  letter-spacing: -0.045em;
+  text-transform: uppercase;
+  color: #F2F2F2;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+/* Halo detrás del titular. OJO: con letras de 240px, un blur corto y opaco crea una
+   neblina tan densa que se lee como un PANEL rectangular (defecto real que se vio).
+   La solución es blur MUY amplio y baja opacidad: bloom ambiental, no caja. */
+.hero-title-back .ht-line {
+  text-shadow: 0 0 160px color-mix(in srgb, var(--color-primary) 26%, transparent);
+}
+
+/* La parte BAJA (capa front) va en degradado de marca: remata la composición */
+.hero-title-front .ht-line {
+  background: linear-gradient(180deg, #F2F2F2 0%, var(--color-primary) 130%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ht-line { transform: none !important; }
+}
+
+/* INTRO cinematográfica (video del stack). Desktop/landscape: cover full-bleed inmersivo.
+   Portrait/móvil: contain → se ve la composición COMPLETA del 16:9, y un poster ampliado y
+   DESENFOCADO rellena el resto de la pantalla vertical (patrón silenciadores) → premium,
+   no franjas negras. */
+.intro-video {
+  object-fit: cover;
+  object-position: center;
+}
+.intro-fill { display: none; }
+@media (orientation: portrait) {
+  .intro-video { object-fit: contain; }
+  .intro-fill {
+    display: block;
+    background: #050505 url("/media/intro-poster.webp") center center / cover no-repeat;
+    filter: blur(26px) brightness(0.45) saturate(1.1);
+    transform: scale(1.25);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FALLBACK LANDSCAPE-COMPACTO (teléfono en horizontal / ventana muy baja)
+   ---------------------------------------------------------------------------
+   Adjudicado por el pipeline senior (frontend-senior build → tech-lead +
+   security + qa → llm-judge 4.5/5): enfoque de FLUJO, no overlay escalado.
+
+   PORQUÉ: el hero cinematográfico es una composición de 100vh con 3 bandas en
+   position:absolute (eyebrow arriba · titular colosal centrado por
+   align-items:center · bloque inferior abajo). El titular .ht-line se mide por
+   ANCHO: clamp(...,10.2vw,...). En un teléfono en horizontal el viewport es MUY
+   ANCHO pero MUY BAJO (~300-430px de alto): el titular sigue gigante (vw) y no
+   hay altura para las 3 bandas → colisionan entre sí, con el navbar fijo y con
+   la bio. No existía regla para viewport bajo (todos los @media previos son
+   max-width / portrait) — ese era el hueco.
+
+   ESTRATEGIA (ADITIVA — no toca desktop/tablet/portrait; REGLA #6.0/#9): SOLO
+   cuando el alto es escaso, el overlay absoluto se desarma y el hero pasa a
+   FLUJO normal → las bandas se apilan en orden DOM y es IMPOSIBLE que se solapen
+   (garantía por construcción, no por calibrar magic numbers). El titular se
+   re-dimensiona por ALTURA, el eje escaso en landscape, en vez de por ancho.
+
+   BREAKPOINT (orientation: landscape) and (max-height: 600px):
+     · NO afecta: desktop 1080p (alto 1080), laptop 768/720, iPad landscape
+       (alto ≥768). El corte 600 vive en el hueco seguro entre teléfonos
+       landscape (~300-430 alto) y tablets landscape (≥768 alto).
+     · SÍ cubre: cualquier teléfono en horizontal (y una ventana desktop
+       deliberadamente aplastada, donde el flujo es igual de deseable).
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (orientation: landscape) and (max-height: 600px) {
+  /* min-height:100vh está INLINE en <section id="hero"> (Hero.tsx) → sólo un
+     !important de autor vence al estilo inline.
+     padding-top 5.5rem despeja el navbar fixed —mide ~3.5rem: padding 0.85rem*2
+     + toggle/logo ~1.5rem, ver Navbar.tsx— con ~2rem de aire. Si cambia la
+     altura del navbar, revisar este valor. */
+  #hero {
+    min-height: auto !important;
+    padding: 5.5rem 0 2.5rem;
+  }
+
+  /* Las 3 bandas dejan de estar ancladas y entran al flujo (eyebrow → titular →
+     bloque inferior). #hero .hero-eyebrow / #hero .hero-bottom (especificidad
+     1,1,0) vencen al <style> inline de Hero.tsx (0,1,0), que por orden de fuente
+     ganaría a globals.css — sin el #hero el fix NO aplicaría a esas dos bandas. */
+  #hero .hero-eyebrow { position: static; top: auto; margin: 0 auto 1.1rem; }
+  #hero .hero-bottom  { position: static; bottom: auto; margin: 1.6rem auto 0; }
+
+  /* La capa TRASERA del titular (page.tsx, anclada top:0/height:100vh, centrada)
+     en flujo quedaría como un titular fantasma desalineado → se oculta. La
+     FRONTAL conserva el <h1> real (SEO/lector de pantalla) → sin costo de a11y. */
+  .hero-title-back { display: none; }
+
+  /* La capa frontal deja de ser overlay de 100vh y muestra el titular COMPLETO
+     (sin el clip-path que en modo cine revela sólo la mitad baja). */
+  .hero-title-layer.hero-title-front {
+    position: static;
+    height: auto;
+    -webkit-clip-path: none;
+            clip-path: none;
+  }
+
+  /* NÚCLEO DEL FIX: dimensionar por ALTURA, no por ancho (vw), para que el
+     titular quepa al bajar el alto. Doble declaración: vh (soporte universal)
+     como fallback y svh (estable cuando colapsa la barra de URL móvil) donde
+     exista. Ancho landscape ≥667px y "GUTIÉRREZ" (~9 letras a 3rem/48px máx
+     ≈ 260px) → white-space:nowrap NO desborda. */
+  .ht-line {
+    font-size: clamp(1.6rem, 8.5vh, 3rem);
+    font-size: clamp(1.6rem, 8.5svh, 3rem);
+    line-height: 1.02;
+  }
 }

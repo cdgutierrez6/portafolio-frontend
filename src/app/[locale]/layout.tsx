@@ -1,9 +1,21 @@
 import type { Metadata } from "next";
+import { Archivo } from "next/font/google";
 import "../globals.css";
 import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/ui/Navbar";
-import IntroScreen from "@/components/portfolio/IntroScreen";
+import Preloader from "@/components/portfolio/Preloader";
 import { portfolioData } from "@/data/portfolio-data";
+
+/**
+ * Archivo (variable): es la grotesca que usan las referencias premium (thepatchsystem
+ * lleva su H1 a 270px con ella). Con una fuente de sistema, un titular de 200px se ve
+ * barato; con una display de verdad, se ve caro.
+ */
+const archivo = Archivo({
+  subsets: ["latin"],
+  variable: "--font-display",
+  display: "swap",
+});
 
 export async function generateStaticParams() {
   return [{ locale: "es" }, { locale: "en" }];
@@ -104,7 +116,7 @@ export default function LocaleLayout({
   };
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={archivo.variable}>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
@@ -115,7 +127,11 @@ export default function LocaleLayout({
         />
       </head>
       <body>
-        <IntroScreen />
+        {/* Grid punteado + grano: la textura que sustituye a las partículas (cliché). */}
+        <div className="bg-grid" aria-hidden="true" />
+        <div className="bg-grain" aria-hidden="true" />
+
+        <Preloader locale={locale} />
         <Navbar locale={locale} initials={initials} />
         <main>{children}</main>
         <Toaster

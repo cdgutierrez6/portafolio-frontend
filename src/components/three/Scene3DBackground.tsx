@@ -1,0 +1,188 @@
+"use client";
+
+import { Suspense, useMemo } from "react";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { PerspectiveCamera, ContactShadows, MeshReflectorMaterial } from "@react-three/drei";
+import { EffectComposer, Bloom, DepthOfField, Noise, Vignette } from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
+import * as THREE from "three";
+import { pointerStore } from "./ParticleField";
+import HeroArtifact from "./HeroArtifact";
+import FaceReveal from "./FaceReveal";
+import { stage, updateStage, ORBIT_CENTER } from "./scene-stage";
+
+// Foco del DoF (sujeto activo). smoothstep = ease firma.
+const dofTarget = new THREE.Vector3().copy(stage.crystal);
+const smoothstep = (x: number) => x * x * (3 - 2 * x);
+
+/** Actualiza el escenario compartido UNA vez por frame, ANTES de que todos lo lean. */
+function StageDriver() {
+  useFrame((_s, dt) => updateStage(dt));
+  return null;
+}
+
+/**
+ * CÁMARA CINEMATOGRÁFICA atada al scroll (el alma de las referencias: la cámara viaja).
+ * BEAT 0 (page 0): plano abierto, cristal a la derecha, nombre a la izquierda.
+ * BEAT 1 (0→0.18): DOLLY-IN hacia el cristal (z 6→3.8), se encuadra como sujeto.
+ * BEAT 2 (0.18→0.32): TRACK lateral a la izquierda → la cara de Cristian (plano-video) se
+ *   revela y entra en foco; el cristal deriva al fondo (bokeh). "y este soy yo."
+ */
+function CameraRig({ reduced }: { reduced: boolean }) {
+  const lookAt = useMemo(() => new THREE.Vector3(), []);
+  useFrame((state, dt) => {
+    const d = Math.min(dt, 0.1);
+    // Progreso RELATIVO AL VIEWPORT (no a la página entera): el arco vive en los primeros
+    // ~1.3 viewports de scroll. Beat 1 (dolly) 0→0.6, Beat 2 (track+cara) 0.6→1.3.
+    const a = smoothstep(THREE.MathUtils.clamp(stage.hp / 0.6, 0, 1)); // dolly al cristal
+    const b = stage.swap;                                              // intercambio orbital
+
+    const px = reduced ? 0 : pointerStore.nx * 0.22;
+    const py = reduced ? 0 : pointerStore.ny * 0.16;
+
+    const tx = THREE.MathUtils.lerp(0, 1.5, a) - 1.5 * b + px;
+    const ty = THREE.MathUtils.lerp(-0.2, 0.5, a) + py;
+    const tz = THREE.MathUtils.lerp(6, 4.0, a) + 1.9 * b;  // dolly-in → pull-back (encuadra la órbita)
+
+    state.camera.position.x = THREE.MathUtils.damp(state.camera.position.x, tx, 3, d);
+    state.camera.position.y = THREE.MathUtils.damp(state.camera.position.y, ty, 3, d);
+    state.camera.position.z = THREE.MathUtils.damp(state.camera.position.z, tz, 3, d);
+
+    // lookAt: Beat 1 al cristal; Beat 2 al CENTRO de la órbita (encuadra el intercambio,
+    // cristal y cara cruzándose sin taparse ni hueco negro).
+    lookAt.set(
+      THREE.MathUtils.lerp(THREE.MathUtils.lerp(1.0, stage.crystal.x, a), ORBIT_CENTER.x, b),
+      THREE.MathUtils.lerp(THREE.MathUtils.lerp(0.1, stage.crystal.y, a), ORBIT_CENTER.y, b),
+      0
+    );
+    state.camera.lookAt(lookAt);
+
+    // DoF: cristal en Beat 1 → centro de la órbita durante el intercambio.
+    dofTarget.copy(stage.crystal).lerp(ORBIT_CENTER, b);
+  });
+  return null;
+}
+
+/**
+ * UN canvas WebGL fijo detrás de la página.
+ *
+ * RESTA (2026-07-14, tras estudiar Lusion / dgreenheck / Codrops Cinematic3DScroll):
+ * el look premiado = UN héroe limpio sobre negro con AIRE, no efecto sobre efecto.
+ * Se mató el campo de partículas, el trazo, las caústicas, el piso espejo y el núcleo
+ * de 300 puntos (era "sopa"). Queda el CRISTAL como protagonista único, con niebla,
+ * UNA luz de acento fría y sombra de contacto para plantarlo (patrón dgreenheck).
+ * (Siguiente paso: cámara cinematográfica atada al scroll — 4 beats.)
+ */
+export default function Scene3DBackground() {
+  const reduced = useMemo(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    []
+  );
+
+  // GATE de rendimiento: móvil (pointer coarse / pantalla chica) o gama baja → menos carga
+  // (samples/resolución de transmisión, reflector liviano, sin DoF, dpr 1). Evita tirones.
+  const lowPerf = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const nav = navigator as Navigator & { deviceMemory?: number };
+    const coarse = window.matchMedia("(pointer: coarse)").matches;
+    const small = window.matchMedia("(max-width: 900px)").matches;
+    const weak = (nav.deviceMemory ?? 8) <= 4 || (navigator.hardwareConcurrency ?? 8) <= 4;
+    return coarse || small || weak;
+  }, []);
+
+  // GATE de ENCUADRE (distinto al de rendimiento): pantalla angosta/táctil → el viewport
+  // vertical hace que en el cruce de la órbita el cristal (que queda AL FRENTE) luzca
+  // gigante y TAPE la cara. Se encoge el cristal SOLO aquí (no en desktop, que se ve bien).
+  const isMobile = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return (
+      window.matchMedia("(pointer: coarse)").matches ||
+      window.matchMedia("(max-width: 768px)").matches
+    );
+  }, []);
+
+  return (
+    <Canvas
+      dpr={lowPerf ? [1, 1] : [1, 1.75]}
+      gl={{
+        antialias: false,
+        powerPreference: "high-performance",
+        alpha: true,
+        // ACES: comprime los brillos como una cámara real (sin él, se clipean a blanco).
+        toneMapping: THREE.ACESFilmicToneMapping,
+        toneMappingExposure: 0.82,
+        outputColorSpace: THREE.SRGBColorSpace,
+      }}
+      style={{ background: "transparent" }}
+    >
+      <PerspectiveCamera makeDefault fov={40} position={[0, 0, 6]} />
+
+      {/* Niebla = el AIRE/profundidad (regla Igloo: el negro + niebla dan el ambiente,
+          no elementos apilados). */}
+      <fog attach="fog" args={["#07080d", 5, 16]} />
+
+      {/* UNA sola luz de acento fría (el "director's cue" de Codrops), no diez efectos.
+          Rim que recorta el cristal contra el negro. */}
+      <pointLight position={[-3.5, 2.5, 2]} intensity={90} color="#6E8BFF" />
+
+      <StageDriver />
+      <CameraRig reduced={reduced} />
+
+      <Suspense fallback={null}>
+        <HeroArtifact lowPerf={lowPerf} isMobile={isMobile} />
+
+        {/* Beat 2: la cara de Cristian (plano-video luma-key) — invisible hasta que el
+            scroll entra a su beat y la cámara viaja hacia ella. */}
+        <FaceReveal />
+
+        {/* PISO REFLECTOR (idea de Cristian): refleja el cristal Y la cara → "magia" de
+            bodegón. Cerca de los objetos (y=-0.95) y con más espejo para que el reflejo
+            SE VEA; el canvas es fijo → aparece en todas las secciones. */}
+        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.4, -0.2, 0]}>
+          <planeGeometry args={[45, 45]} />
+          <MeshReflectorMaterial
+            resolution={lowPerf ? 128 : 512}
+            blur={[220, 90]}
+            mixBlur={1.0}
+            mixStrength={38}
+            roughness={0.6}
+            depthScale={1.1}
+            minDepthThreshold={0.3}
+            maxDepthThreshold={1.1}
+            color="#06080f"
+            metalness={0.55}
+            mirror={0.6}
+          />
+        </mesh>
+
+        {/* Sombra de contacto suave sobre el piso reflector → asienta el cristal. */}
+        <ContactShadows
+          position={[0.4, -0.18, 0]}
+          scale={8}
+          blur={2.8}
+          opacity={0.28}
+          far={4}
+          color="#000000"
+        />
+
+        {/* Capa fotográfica (grade cine). El DoF (el efecto más caro) va SOLO en desktop;
+            en móvil/gama-baja se omite para no tumbar el frame-rate. */}
+        {lowPerf ? (
+          <EffectComposer enableNormalPass={false}>
+            <Bloom intensity={0.7} luminanceThreshold={0.9} luminanceSmoothing={0.2} mipmapBlur />
+            <Vignette eskil={false} offset={0.3} darkness={0.55} />
+          </EffectComposer>
+        ) : (
+          <EffectComposer enableNormalPass={false}>
+            <DepthOfField target={dofTarget} focalLength={0.03} bokehScale={2.5} height={480} />
+            <Bloom intensity={0.7} luminanceThreshold={0.9} luminanceSmoothing={0.2} mipmapBlur />
+            <Noise premultiply blendFunction={BlendFunction.SOFT_LIGHT} opacity={0.05} />
+            <Vignette eskil={false} offset={0.3} darkness={0.55} />
+          </EffectComposer>
+        )}
+      </Suspense>
+    </Canvas>
+  );
+}

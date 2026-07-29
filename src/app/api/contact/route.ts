@@ -77,8 +77,18 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "No se pudo enviar el mensaje. Intenta de nuevo más tarde." }, { status: 500 });
       }
     } else {
-      console.log("📧 [Contact] Sin RESEND_API_KEY — mensaje recibido:", { to: toEmail, senderName, senderEmail, subject, message });
-      return NextResponse.json({ success: true, warning: "RESEND_API_KEY no configurada — mensaje registrado en consola." });
+      // Sin RESEND_API_KEY NO hay transporte real de correo.
+      // ANTES esto devolvía { success: true } y solo hacía console.log → le MENTÍA al
+      // visitante: veía "enviado" y el mensaje no llegaba a ningún sitio. Inaceptable en
+      // un formulario de contacto (un reclutador escribe y su mensaje se pierde).
+      // Ahora respondemos honestamente y el cliente cae a un mailto: prellenado.
+      return NextResponse.json(
+        {
+          error: "El envío por servidor no está configurado.",
+          fallback: "mailto",
+        },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json({ success: true });

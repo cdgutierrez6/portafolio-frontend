@@ -17,6 +17,22 @@ export default function Contact({ personal, t, animated }: Props) {
   const titleRef = useReveal<HTMLHeadingElement>({ direction: "up", threshold: 0.3, animated });
   const formRef  = useReveal<HTMLDivElement>({ direction: "right", delay: 200, threshold: 0.15, animated });
 
+  /**
+   * Fallback REAL: abre el cliente de correo con el mensaje ya redactado.
+   * Se usa cuando el envío por servidor no está disponible (sin RESEND_API_KEY, o la
+   * API bloqueada por la protección SSO de los previews de Vercel). Antes, en ese caso,
+   * el formulario decía "enviado" y el mensaje NO llegaba a ninguna parte.
+   */
+  const openMailFallback = () => {
+    const body = `${form.message}\n\n—\n${form.senderName} <${form.senderEmail}>`;
+    const href =
+      `mailto:${personal.email}` +
+      `?subject=${encodeURIComponent(`[Portafolio] ${form.subject}`)}` +
+      `&body=${encodeURIComponent(body)}`;
+    window.location.href = href;
+    toast("✉️ Abrimos tu correo con el mensaje listo para enviar", { duration: 5000 });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSending(true);
@@ -26,15 +42,25 @@ export default function Contact({ personal, t, animated }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+
       if (res.ok) {
         toast.success("✅ Mensaje enviado correctamente");
         setForm({ senderName: "", senderEmail: "", subject: "", message: "" });
-      } else {
-        const data = await res.json();
-        toast.error(data.error ?? "❌ Error al enviar");
+        return;
       }
+
+      // 400 (validación) y 429 (rate limit) son errores REALES del usuario: se muestran.
+      if (res.status === 400 || res.status === 429) {
+        const data = await res.json().catch(() => ({}));
+        toast.error(data.error ?? "❌ Error al enviar");
+        return;
+      }
+
+      // 503 (sin transporte configurado) o 5xx → el mensaje NO se perdería en silencio.
+      openMailFallback();
     } catch {
-      toast.error("❌ No se pudo conectar al servidor");
+      // Red caída, o la API interceptada por el SSO del preview → mismo fallback.
+      openMailFallback();
     } finally {
       setSending(false);
     }
@@ -49,8 +75,25 @@ export default function Contact({ personal, t, animated }: Props) {
   ];
 
   return (
-    <section id="contact" className="section" aria-labelledby="contact-heading" style={{ position: "relative", zIndex: 10 }}>
-      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "0 1.5rem" }}>
+    <section id="contact" className="section" aria-labelledby="contact-heading" style={{ position: "relative", zIndex: 10, overflow: "hidden" }}>
+      {/* Cierre del arco (peak-end): "convergencia a un punto de luz". El sistema que
+          recorriste toda la página termina en un solo punto = la invitación a escribir. */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+          backgroundImage: "url(/media/close.webp)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          opacity: 0.7,
+          maskImage: "radial-gradient(ellipse at 50% 42%, #000 35%, transparent 80%)",
+          WebkitMaskImage: "radial-gradient(ellipse at 50% 42%, #000 35%, transparent 80%)",
+        }}
+      />
+      <div style={{ position: "relative", zIndex: 1, maxWidth: "900px", margin: "0 auto", padding: "0 1.5rem" }}>
         <h2 id="contact-heading" ref={titleRef} className="section-title">{t.contact.title}</h2>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3rem", alignItems: "start" }} className="contact-grid">
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
