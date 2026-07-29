@@ -24,8 +24,10 @@ type CanvasCtxLS = CanvasRenderingContext2D & { letterSpacing?: string };
 /** Texto → textura de canvas (mono, tinte acento, outline color-niebla). $0, sin fuente
  *  externa ni worker CSP (evita el fetch de troika a gstatic). Se genera UNA vez por label. */
 function makeLabelTexture(text: string): { tex: THREE.CanvasTexture; aspect: number } {
-  const fontPx = 64, padX = 34, padY = 24, track = 5;
-  const font = `600 ${fontPx}px ui-monospace, "SF Mono", Menlo, Consolas, monospace`;
+  // Supersample x2 (128px, no 64) → el texto se ve NÍTIDO al escalar sobre el cristal;
+  // a 64px se veía borroso/tenue. Pesos/paddings escalados a la par. Peso 700 = más legible.
+  const fontPx = 128, padX = 60, padY = 40, track = 9;
+  const font = `700 ${fontPx}px ui-monospace, "SF Mono", Menlo, Consolas, monospace`;
   const m = (document.createElement("canvas").getContext("2d") as CanvasCtxLS);
   m.font = font; m.letterSpacing = `${track}px`;
   const textW = Math.ceil(m.measureText(text).width);
@@ -35,11 +37,16 @@ function makeLabelTexture(text: string): { tex: THREE.CanvasTexture; aspect: num
   const c = canvas.getContext("2d") as CanvasCtxLS;
   c.font = font; c.letterSpacing = `${track}px`;
   c.textAlign = "center"; c.textBaseline = "middle"; c.lineJoin = "round";
-  c.lineWidth = 8; c.strokeStyle = "#07080d"; c.strokeText(text, w / 2, h / 2); // outline niebla
-  c.fillStyle = "#cdd7ff"; c.fillText(text, w / 2, h / 2);                       // glifo (tinte vidrio)
+  c.lineWidth = 14; c.strokeStyle = "#05060a"; c.strokeText(text, w / 2, h / 2); // outline niebla (más contraste)
+  c.fillStyle = "#dbe4ff"; c.fillText(text, w / 2, h / 2);                        // glifo (tinte vidrio, más brillante; bajo el umbral de bloom 0.9)
   const tex = new THREE.CanvasTexture(canvas);
   tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 4;
+  // Nitidez: filtro lineal sin mipmaps (canvas NPOT) + anisotropía alta → texto crujiente
+  // también en ángulo. three recorta la anisotropía al máximo real del dispositivo.
+  tex.minFilter = THREE.LinearFilter;
+  tex.magFilter = THREE.LinearFilter;
+  tex.generateMipmaps = false;
+  tex.anisotropy = 16;
   return { tex, aspect: w / h };
 }
 
@@ -91,7 +98,7 @@ export default function HeroArtifact({
 
   // Gate de encuadre: en móvil los nombres van un pelín más grandes (viewport angosto).
   const LABEL_H = isMobile ? 0.135 : 0.11;
-  const PEAK = isMobile ? 0.72 : 0.82;
+  const PEAK = isMobile ? 0.9 : 0.98;   // más sólidas/legibles (antes 0.72/0.82, se veían tenues)
 
   useFrame((state, dt) => {
     const d = Math.min(dt, 0.1);
@@ -198,6 +205,7 @@ export default function HeroArtifact({
                     map={l.tex}
                     transparent
                     opacity={0}
+                    toneMapped={false}
                     depthWrite={false}
                     depthTest={false}
                   />
