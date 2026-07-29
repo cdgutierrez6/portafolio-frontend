@@ -24,21 +24,21 @@ bpy.context.collection.objects.link(obj)
 
 bm = bmesh.new()
 
-SIDES = 7          # impar → asimétrico, se ve más "natural/tallado"
-R = 0.78           # radio base del prisma
-BODY = 1.35        # media altura del cuerpo (Y)
-TIP_T = 1.05       # largo de la punta superior
-TIP_B = 0.9        # largo de la punta inferior
-TWIST = 0.22       # giro entre anillo inferior y superior (rad)
+SIDES = 8          # OCTÁGONO: 8 lados regulares que se ven DE FRENTE (emblema/rueda)
+R = 0.92           # circumradio del octágono (grande → el octágono domina de frente)
+BODY = 0.24        # media "profundidad" del cuerpo (queda como eje Z al exportar → gema plana de frente)
+TIP_T = 0.62       # punta hacia la cámara (brillo brillante-cut)
+TIP_B = 0.62       # punta hacia el fondo (simétrica)
+TWIST = 0.0        # sin twist → octágono limpio y regular de frente
 
 top_ring, bot_ring = [], []
 for i in range(SIDES):
     a = (i / SIDES) * 2 * math.pi
-    rr = R * (0.72 + 0.42 * random.random())          # radios irregulares
+    rr = R                                             # radio CONSTANTE → octágono regular
     # anillo superior (con twist) e inferior
     at = a + TWIST
     top_ring.append(bm.verts.new((math.cos(at) * rr, BODY, math.sin(at) * rr)))
-    rr2 = R * (0.72 + 0.42 * random.random())
+    rr2 = R
     bot_ring.append(bm.verts.new((math.cos(a) * rr2, -BODY, math.sin(a) * rr2)))
 
 # puntas ligeramente descentradas (asimetría = tallado real)
