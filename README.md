@@ -3,13 +3,13 @@
 ![Next.js](https://img.shields.io/badge/Next.js_14-000000?style=flat-square&logo=next.js&logoColor=white)
 ![React](https://img.shields.io/badge/React_18-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Three.js](https://img.shields.io/badge/three.js_·_R3F-000000?style=flat-square&logo=threedotjs&logoColor=white)
+![GSAP](https://img.shields.io/badge/GSAP_·_Lenis-88CE02?style=flat-square&logo=greensock&logoColor=black)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
-![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=flat-square&logo=framer&logoColor=white)
 ![Resend](https://img.shields.io/badge/Resend-000000?style=flat-square&logo=resend&logoColor=white)
-![Vitest](https://img.shields.io/badge/Vitest-6E9F18?style=flat-square&logo=vitest&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white)
 
-> **Bilingual developer portfolio** — a fully server-rendered (SSG), locale-routed (`/es` · `/en`) personal site with animated sections, a particle background, and a hardened Resend-backed contact form.
+> **Bilingual developer portfolio** — a fully server-rendered (SSG), locale-routed (`/es` · `/en`) personal site with a **cinematic 3D hero** (react-three-fiber), scroll-driven motion, and a hardened Resend-backed contact form.
 
 **Live:** https://portafolio-frontend-wheat.vercel.app
 
@@ -33,6 +33,7 @@ flowchart LR
     subgraph App["Next.js 14 App Router"]
         LP["/[locale]/page.tsx<br/>SSG page"]
         SEC["Portfolio sections<br/>Hero · About · Experience<br/>Skills · Projects · Education · Contact"]
+        R3F["components/three<br/>3D crystal hero (R3F)"]
         API["/api/contact<br/>route handler"]
     end
 
@@ -47,6 +48,7 @@ flowchart LR
 
     V --> MW --> LP
     LP --> SEC
+    LP --> R3F
     LP --> PD
     LP --> I18N
     SEC --> API
@@ -58,12 +60,11 @@ flowchart LR
 ### Features
 
 - **Bilingual by route** — locale-segmented App Router (`/es`, `/en`); `middleware.ts` reads `Accept-Language` at the root and redirects to the visitor's preferred language.
+- **Cinematic 3D hero** — an art-directed crystal built with **three.js / react-three-fiber / drei + postprocessing**, driven by scroll via **GSAP + Lenis**. Performance-gated: WebGL only mounts after the intro and is disabled on `prefers-reduced-motion` and low-end devices (low `deviceMemory` / `hardwareConcurrency`), with capped `dpr` and a lighter mobile path.
 - **Single source of content** — all experience, skills, education, courses and projects live in `src/data/portfolio-data.ts`, each field carrying `Es`/`En` variants selected at render time.
-- **Hardened contact API** — `/api/contact` applies per-IP rate limiting (5/hour), field-length caps, email regex validation, and HTML escaping before delivering through Resend; degrades gracefully to console logging when no API key is set.
-- **Motion & particles** — Framer Motion section reveals plus a `tsparticles` animated background, both toggleable through `settings` flags in the data file.
+- **Hardened contact API** — `/api/contact` applies per-IP rate limiting, field-length caps, email validation and HTML escaping before delivering through Resend; if no transport is configured it returns `503` and the UI **falls back to a pre-filled `mailto:` draft** — the message is never silently dropped.
 - **Security headers** — CSP, HSTS, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` and `Permissions-Policy` set globally in `next.config.mjs`.
-- **SEO ready** — dynamic `sitemap.ts` and `NEXT_PUBLIC_BASE_URL`-driven metadata.
-- **Tested** — Vitest unit tests cover the contact route and tech-description helpers.
+- **SEO ready** — dynamic `sitemap.ts`, `Person` JSON-LD, and a dynamic Open Graph image generated with `next/og` (`opengraph-image.tsx`).
 
 ---
 
@@ -80,7 +81,6 @@ npm run dev        # http://localhost:3000 → redirects to /es or /en
 npm run build      # production build (SSG)
 npm run start      # serve the production build
 npm run lint       # ESLint
-npx vitest         # run unit tests
 ```
 
 ---
@@ -93,29 +93,28 @@ portafolio-frontend/
 │   ├── app/
 │   │   ├── [locale]/          # es / en routes (SSG)
 │   │   │   ├── layout.tsx
+│   │   │   ├── opengraph-image.tsx   # dynamic OG image (next/og)
 │   │   │   └── page.tsx       # composes all portfolio sections
 │   │   ├── api/contact/       # contact route handler (Resend)
-│   │   ├── layout.tsx         # root layout + metadata
 │   │   ├── sitemap.ts         # dynamic sitemap
 │   │   └── globals.css
 │   ├── components/
 │   │   ├── portfolio/         # Hero, About, Experience, Skills,
-│   │   │                      #   Projects, Education, Contact, IntroScreen…
-│   │   └── ui/                # Navbar, Footer, ParticlesBg
+│   │   │                      #   Projects, Education, Contact, Preloader…
+│   │   ├── three/             # 3D crystal hero (Scene3DBackground) — R3F/drei
+│   │   └── ui/                # Navbar, Footer
 │   ├── data/
 │   │   └── portfolio-data.ts  # all bilingual portfolio content
 │   ├── hooks/
-│   │   └── useReveal.ts       # scroll-reveal hook
+│   │   └── useReveal.ts       # scroll-reveal hook (IntersectionObserver)
 │   ├── lib/
 │   │   ├── types.ts           # TS types + i18n UI translations
 │   │   ├── contact-validators.ts
 │   │   └── tech-descriptions.ts
-│   ├── middleware.ts          # root locale redirect
-│   └── __tests__/             # Vitest tests
-├── public/                    # static assets
+│   └── middleware.ts          # root locale redirect
+├── public/                    # static assets (models, hdri, media)
 ├── next.config.mjs            # security headers + image domains
-├── tailwind.config.ts
-└── vitest.config.ts
+└── tailwind.config.ts
 ```
 
 ---
@@ -124,7 +123,7 @@ portafolio-frontend/
 
 | Method | Route | Description |
 |--------|-------|-------------|
-| `POST` | `/api/contact` | Sends a contact message. Body: `senderName`, `senderEmail`, `subject`, `message`. Rate-limited to 5 requests/hour/IP; validates field lengths and email format. Returns `429` when the limit is exceeded, `400` on invalid input. Delivers via Resend when `RESEND_API_KEY` is set, otherwise logs to console. |
+| `POST` | `/api/contact` | Sends a contact message. Body: `senderName`, `senderEmail`, `subject`, `message`. Rate-limited per IP; validates field lengths and email format. Returns `429` when the limit is exceeded, `400` on invalid input. Delivers via Resend when `RESEND_API_KEY` is set; otherwise returns `503` and the UI falls back to a pre-filled `mailto:` draft. |
 
 ---
 
@@ -133,7 +132,7 @@ portafolio-frontend/
 | Variable | Description | Required |
 |----------|-------------|----------|
 | `NEXT_PUBLIC_BASE_URL` | Public base URL of the site, used for SEO metadata and the sitemap. | Yes |
-| `RESEND_API_KEY` | Resend API key for contact-form email delivery. Without it, messages are logged to the console (dev only). | No |
+| `RESEND_API_KEY` | Resend API key for contact-form email delivery. Without it, the form falls back to a `mailto:` draft. | No |
 | `CONTACT_EMAIL` | Destination address for contact messages. Must match a verified address on your Resend account. | No (defaults to owner email) |
 
 ---
@@ -142,20 +141,18 @@ portafolio-frontend/
 
 - **Next.js 14** (App Router, SSG) — framework, routing, route handlers.
 - **React 18 + TypeScript** — UI and type safety.
+- **three.js · react-three-fiber · drei · @react-three/postprocessing** — the cinematic 3D crystal hero.
+- **GSAP + Lenis** — scroll-driven animation and smooth scrolling.
 - **Tailwind CSS** — utility-first styling.
-- **Framer Motion** — section reveal animations.
-- **@tsparticles/react** — animated particle background.
 - **Resend** — transactional email for the contact form.
 - **react-hot-toast** — form feedback notifications.
-- **react-icons** — iconography.
-- **Vitest** — unit testing.
 - **Vercel** — hosting and CI deploy on push to `master`.
 
 ---
 
 ### Author
 
-**Cristian Daniel Gutiérrez S.** — Solutions Architect | Full-Stack Engineer
+**Cristian Daniel Gutiérrez S.** — Solutions Architect | Senior Full-Stack Engineer · 13+ years
 
 [LinkedIn](https://www.linkedin.com/in/cristian-daniel-guti%C3%A9rrez-segura) · [Portfolio](https://portafolio-frontend-wheat.vercel.app) · [cdgutierrez6@gmail.com](mailto:cdgutierrez6@gmail.com)
 
@@ -181,6 +178,7 @@ flowchart LR
     subgraph App["Next.js 14 App Router"]
         LP["/[locale]/page.tsx<br/>página SSG"]
         SEC["Secciones del portafolio<br/>Hero · About · Experience<br/>Skills · Projects · Education · Contact"]
+        R3F["components/three<br/>hero 3D de cristal (R3F)"]
         API["/api/contact<br/>route handler"]
     end
 
@@ -195,6 +193,7 @@ flowchart LR
 
     V --> MW --> LP
     LP --> SEC
+    LP --> R3F
     LP --> PD
     LP --> I18N
     SEC --> API
@@ -206,12 +205,11 @@ flowchart LR
 ### Características
 
 - **Bilingüe por ruta** — App Router segmentado por idioma (`/es`, `/en`); `middleware.ts` lee `Accept-Language` en la raíz y redirige al idioma preferido del visitante.
+- **Hero 3D cinematográfico** — un cristal art-directed hecho con **three.js / react-three-fiber / drei + postprocessing**, animado por scroll con **GSAP + Lenis**. Optimizado: el WebGL solo se monta tras la intro y se apaga en `prefers-reduced-motion` y en dispositivos de gama baja (poca `deviceMemory` / `hardwareConcurrency`), con `dpr` acotado y una ruta más liviana en móvil.
 - **Contenido en una sola fuente** — toda la experiencia, skills, educación, cursos y proyectos viven en `src/data/portfolio-data.ts`, con cada campo en variantes `Es`/`En` seleccionadas al renderizar.
-- **API de contacto endurecida** — `/api/contact` aplica rate limiting por IP (5/hora), límites de longitud, validación de email por regex y escape de HTML antes de entregar vía Resend; degrada con elegancia a log en consola cuando no hay API key.
-- **Movimiento y partículas** — reveals de sección con Framer Motion más un fondo animado con `tsparticles`, ambos conmutables mediante flags de `settings` en el archivo de datos.
+- **API de contacto endurecida** — `/api/contact` aplica rate limiting por IP, límites de longitud, validación de email y escape de HTML antes de entregar vía Resend; si no hay transporte configurado devuelve `503` y la UI **cae a un borrador `mailto:` pre-rellenado** — el mensaje nunca se pierde en silencio.
 - **Cabeceras de seguridad** — CSP, HSTS, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` y `Permissions-Policy` definidas globalmente en `next.config.mjs`.
-- **Listo para SEO** — `sitemap.ts` dinámico y metadata basada en `NEXT_PUBLIC_BASE_URL`.
-- **Con pruebas** — tests unitarios de Vitest cubren la ruta de contacto y los helpers de descripciones técnicas.
+- **Listo para SEO** — `sitemap.ts` dinámico, JSON-LD `Person`, y una imagen Open Graph dinámica generada con `next/og` (`opengraph-image.tsx`).
 
 ---
 
@@ -228,7 +226,6 @@ npm run dev        # http://localhost:3000 → redirige a /es o /en
 npm run build      # build de producción (SSG)
 npm run start      # sirve el build de producción
 npm run lint       # ESLint
-npx vitest         # ejecuta las pruebas unitarias
 ```
 
 ---
@@ -241,29 +238,28 @@ portafolio-frontend/
 │   ├── app/
 │   │   ├── [locale]/          # rutas es / en (SSG)
 │   │   │   ├── layout.tsx
+│   │   │   ├── opengraph-image.tsx   # imagen OG dinámica (next/og)
 │   │   │   └── page.tsx       # compone todas las secciones del portafolio
 │   │   ├── api/contact/       # route handler de contacto (Resend)
-│   │   ├── layout.tsx         # layout raíz + metadata
 │   │   ├── sitemap.ts         # sitemap dinámico
 │   │   └── globals.css
 │   ├── components/
 │   │   ├── portfolio/         # Hero, About, Experience, Skills,
-│   │   │                      #   Projects, Education, Contact, IntroScreen…
-│   │   └── ui/                # Navbar, Footer, ParticlesBg
+│   │   │                      #   Projects, Education, Contact, Preloader…
+│   │   ├── three/             # hero 3D de cristal (Scene3DBackground) — R3F/drei
+│   │   └── ui/                # Navbar, Footer
 │   ├── data/
 │   │   └── portfolio-data.ts  # todo el contenido bilingüe del portafolio
 │   ├── hooks/
-│   │   └── useReveal.ts       # hook de scroll-reveal
+│   │   └── useReveal.ts       # hook de scroll-reveal (IntersectionObserver)
 │   ├── lib/
 │   │   ├── types.ts           # tipos TS + traducciones de UI (i18n)
 │   │   ├── contact-validators.ts
 │   │   └── tech-descriptions.ts
-│   ├── middleware.ts          # redirección de idioma en la raíz
-│   └── __tests__/             # pruebas con Vitest
-├── public/                    # assets estáticos
+│   └── middleware.ts          # redirección de idioma en la raíz
+├── public/                    # assets estáticos (models, hdri, media)
 ├── next.config.mjs            # cabeceras de seguridad + dominios de imágenes
-├── tailwind.config.ts
-└── vitest.config.ts
+└── tailwind.config.ts
 ```
 
 ---
@@ -272,7 +268,7 @@ portafolio-frontend/
 
 | Método | Ruta | Descripción |
 |--------|------|-------------|
-| `POST` | `/api/contact` | Envía un mensaje de contacto. Body: `senderName`, `senderEmail`, `subject`, `message`. Limitado a 5 solicitudes/hora/IP; valida longitudes de campo y formato de email. Devuelve `429` al superar el límite y `400` ante entrada inválida. Entrega vía Resend cuando `RESEND_API_KEY` está configurada; de lo contrario registra en consola. |
+| `POST` | `/api/contact` | Envía un mensaje de contacto. Body: `senderName`, `senderEmail`, `subject`, `message`. Limitado por IP; valida longitudes de campo y formato de email. Devuelve `429` al superar el límite y `400` ante entrada inválida. Entrega vía Resend cuando `RESEND_API_KEY` está configurada; de lo contrario devuelve `503` y la UI cae a un borrador `mailto:` pre-rellenado. |
 
 ---
 
@@ -281,7 +277,7 @@ portafolio-frontend/
 | Variable | Descripción | Requerida |
 |----------|-------------|-----------|
 | `NEXT_PUBLIC_BASE_URL` | URL base pública del sitio, usada para metadata SEO y el sitemap. | Sí |
-| `RESEND_API_KEY` | API key de Resend para el envío del formulario de contacto. Sin ella, los mensajes se registran en consola (solo desarrollo). | No |
+| `RESEND_API_KEY` | API key de Resend para el envío del formulario de contacto. Sin ella, el formulario cae a un borrador `mailto:`. | No |
 | `CONTACT_EMAIL` | Dirección destino de los mensajes de contacto. Debe coincidir con un email verificado en tu cuenta Resend. | No (usa el email del autor por defecto) |
 
 ---
@@ -290,20 +286,18 @@ portafolio-frontend/
 
 - **Next.js 14** (App Router, SSG) — framework, ruteo y route handlers.
 - **React 18 + TypeScript** — UI y seguridad de tipos.
+- **three.js · react-three-fiber · drei · @react-three/postprocessing** — el hero 3D de cristal cinematográfico.
+- **GSAP + Lenis** — animación por scroll y scroll suave.
 - **Tailwind CSS** — estilos utility-first.
-- **Framer Motion** — animaciones de reveal por sección.
-- **@tsparticles/react** — fondo animado de partículas.
 - **Resend** — correo transaccional para el formulario de contacto.
 - **react-hot-toast** — notificaciones de feedback del formulario.
-- **react-icons** — iconografía.
-- **Vitest** — pruebas unitarias.
 - **Vercel** — hosting y deploy en CI al hacer push a `master`.
 
 ---
 
 ### Autor
 
-**Cristian Daniel Gutiérrez S.** — Arquitecto de Soluciones | Ingeniero Full-Stack
+**Cristian Daniel Gutiérrez S.** — Arquitecto de Soluciones | Ingeniero Full-Stack Senior · 13+ años
 
 [LinkedIn](https://www.linkedin.com/in/cristian-daniel-guti%C3%A9rrez-segura) · [Portafolio](https://portafolio-frontend-wheat.vercel.app) · [cdgutierrez6@gmail.com](mailto:cdgutierrez6@gmail.com)
 
