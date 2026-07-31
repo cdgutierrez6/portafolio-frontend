@@ -1,7 +1,8 @@
 import type { PortfolioData } from "@/lib/types";
-import { yearsOfExperience } from "@/lib/experience";
+import { yearsOfExperience, rollingEndDate } from "@/lib/experience";
 
 const yrs = yearsOfExperience();
+const efiziEnd = rollingEndDate();
 
 export const portfolioData: PortfolioData = {
   settings: {
@@ -47,7 +48,8 @@ export const portfolioData: PortfolioData = {
       technologies: ["Node.js", "Express", "React", "Vite", "PostgreSQL", "Docker", "Traefik", "n8n", "Claude API", "WAHA", "JWT", "Hotmart", "WhatsApp API"],
       startDate: "Ene 2025",
       startDateEn: "Jan 2025",
-      endDate: "Jul 2026",
+      endDate: efiziEnd.es,
+      endDateEn: efiziEnd.en,
       current: false,
     },
     {

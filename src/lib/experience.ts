@@ -28,3 +28,22 @@ export function yearsOfExperience(now: Date = new Date()): number {
 export function yearsOfExperienceLabel(now: Date = new Date()): string {
   return `${yearsOfExperience(now)}+`;
 }
+
+const MONTHS_ES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+const MONTHS_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * Fin "rodante" de EfiziAI = el mes de (hoy − 15 días).
+ *
+ * Regla de Cristian (2026-07-31): EfiziAI (su producto propio) se muestra como
+ * recién terminado ~2 semanas atrás y RUEDA en cada deploy, para que el perfil
+ * siempre lea "disponible ya". Se congela con la fecha real cuando consiga
+ * empleo. Es decisión de framing suya; por eso el número no se escribe a mano.
+ */
+export function rollingEndDate(now: Date = new Date()): { es: string; en: string } {
+  const d = new Date(now.getTime());
+  d.setDate(d.getDate() - 15);
+  const m = d.getMonth();
+  const y = d.getFullYear();
+  return { es: `${MONTHS_ES[m]} ${y}`, en: `${MONTHS_EN[m]} ${y}` };
+}
