@@ -13,6 +13,7 @@ import SmoothScroll from "@/components/three/SmoothScroll";
 import Scene3DBackgroundClient from "@/components/three/Scene3DBackgroundClient";
 import HeroTitle from "@/components/portfolio/HeroTitle";
 import { titleLines } from "@/lib/hero-title";
+import { yearsOfExperienceLabel } from "@/lib/experience";
 
 function getData(locale: Locale) {
   const { settings, personalInfo, experiences, skills, education, courses, projects } = portfolioData;
@@ -97,7 +98,7 @@ export default function PortfolioPage({ params }: { params: { locale: string } }
       <div style={{ minHeight: "100vh", position: "relative", zIndex: 3 }}>
         <Hero personal={data.personal} t={t} locale={locale} animated={data.settings.effectAnimations} />
         <Showcase3D locale={locale} />
-        <About personal={data.personal} t={t} experienceCount={data.experiences.length} animated={data.settings.effectAnimations} />
+        <About personal={data.personal} t={t} experienceCount={data.experiences.length} yearsLabel={yearsOfExperienceLabel()} animated={data.settings.effectAnimations} />
         <Experience experiences={data.experiences} t={t} animated={data.settings.effectAnimations} />
         <Skills skills={data.skills} t={t} animated={data.settings.effectAnimations} />
         <Projects projects={data.projects} t={t} animated={data.settings.effectAnimations} />

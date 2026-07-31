@@ -5,6 +5,7 @@ import { Toaster } from "react-hot-toast";
 import Navbar from "@/components/ui/Navbar";
 import Preloader from "@/components/portfolio/Preloader";
 import { portfolioData } from "@/data/portfolio-data";
+import { yearsOfExperience } from "@/lib/experience";
 
 /**
  * Archivo (variable): es la grotesca que usan las referencias premium (thepatchsystem
@@ -23,9 +24,11 @@ export async function generateStaticParams() {
 
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://portafolio-frontend-wheat.vercel.app";
 
+const yrs = yearsOfExperience();
+
 const DESCRIPTIONS = {
-  en: "Solutions Architect & Senior Full-Stack Engineer with 13+ years building scalable microservices (.NET, Java, Node.js), high-performance web apps (Angular, React), and AI automation systems for enterprise clients.",
-  es: "Solutions Architect y Senior Full-Stack Engineer con más de 13 años construyendo microservicios escalables (.NET, Java, Node.js), aplicaciones web de alto rendimiento (Angular, React) y sistemas de automatización IA para clientes empresariales.",
+  en: `Solutions Architect & Senior Full-Stack Engineer with ${yrs}+ years building scalable microservices (.NET, Java, Node.js), high-performance web apps (Angular, React), and AI automation systems for enterprise clients.`,
+  es: `Solutions Architect y Senior Full-Stack Engineer con más de ${yrs} años construyendo microservicios escalables (.NET, Java, Node.js), aplicaciones web de alto rendimiento (Angular, React) y sistemas de automatización IA para clientes empresariales.`,
 };
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
