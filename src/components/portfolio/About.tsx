@@ -6,16 +6,16 @@ interface Props {
   personal: { name: string; bio: string; email: string; phone: string; location: string };
   t: { about: { title: string; years: string; projects: string; companies: string } };
   experienceCount: number;
+  yearsLabel: string;
   animated: boolean;
 }
 
-const stats = [
-  { value: "13+", keyEs: "años de experiencia", keyEn: "years of experience" },
-  { value: "9",   keyEs: "empresas",             keyEn: "companies"           },
-  { value: "20+", keyEs: "tecnologías",           keyEn: "technologies"        },
-];
-
-export default function About({ personal, t, experienceCount, animated }: Props) {
+export default function About({ personal, t, experienceCount, animated, yearsLabel }: Props) {
+  const stats = [
+    { value: yearsLabel, keyEs: "años de experiencia", keyEn: "years of experience" },
+    { value: "9",   keyEs: "empresas",     keyEn: "companies"    },
+    { value: "20+", keyEs: "tecnologías",   keyEn: "technologies" },
+  ];
   const titleRef = useReveal<HTMLHeadingElement>({ direction: "up", threshold: 0.3, animated });
   const bioRef   = useReveal<HTMLDivElement>({ direction: "left", threshold: 0.2, animated });
   const statsRef = useReveal<HTMLDivElement>({ direction: "right", threshold: 0.2, animated });

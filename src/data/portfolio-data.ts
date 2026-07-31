@@ -1,4 +1,7 @@
 import type { PortfolioData } from "@/lib/types";
+import { yearsOfExperience } from "@/lib/experience";
+
+const yrs = yearsOfExperience();
 
 export const portfolioData: PortfolioData = {
   settings: {
@@ -19,11 +22,11 @@ export const portfolioData: PortfolioData = {
     titleEs: "Solutions Architect & Senior Full-Stack Engineer",
     titleEn: "Solutions Architect & Senior Full-Stack Engineer",
     bioEs:
-      "Solutions Architect y Senior Full-Stack Engineer con más de 13 años de experiencia liderando la arquitectura de microservicios escalables en ecosistemas .NET Core, Java y Node.js. Me especializo en el diseño de infraestructuras backend robustas y aplicaciones web de alto rendimiento (Angular/React) manteniendo rigurosos estándares de Clean Code y SOLID. Enfocado en la construcción de ecosistemas de automatización B2B e integración de tecnologías de IA de vanguardia (LLMs, agentes autónomos) para maximizar la eficiencia empresarial.",
+      `Solutions Architect y Senior Full-Stack Engineer con más de ${yrs} años de experiencia liderando la arquitectura de microservicios escalables en ecosistemas .NET Core, Java y Node.js. Me especializo en el diseño de infraestructuras backend robustas y aplicaciones web de alto rendimiento (Angular/React) manteniendo rigurosos estándares de Clean Code y SOLID. Enfocado en la construcción de ecosistemas de automatización B2B e integración de tecnologías de IA de vanguardia (LLMs, agentes autónomos) para maximizar la eficiencia empresarial.`,
     bioEn:
-      "Solutions Architect and Senior Full-Stack Engineer with 13+ years of experience driving the architecture of scalable microservices across .NET Core, Java, and Node.js ecosystems. I specialize in designing robust backend infrastructures and high-performance web applications (Angular/React) while upholding rigorous Clean Code and SOLID standards. Focused on engineering B2B automation ecosystems and integrating cutting-edge AI technologies (LLMs, autonomous agents) to maximize enterprise efficiency.",
-    headlineEs: "13+ años de experiencia  ·  10 empresas  ·  Solutions Architect  ·  AI Engineer",
-    headlineEn: "13+ years of experience  ·  10 companies  ·  Solutions Architect  ·  AI Engineer",
+      `Solutions Architect and Senior Full-Stack Engineer with ${yrs}+ years of experience driving the architecture of scalable microservices across .NET Core, Java, and Node.js ecosystems. I specialize in designing robust backend infrastructures and high-performance web applications (Angular/React) while upholding rigorous Clean Code and SOLID standards. Focused on engineering B2B automation ecosystems and integrating cutting-edge AI technologies (LLMs, autonomous agents) to maximize enterprise efficiency.`,
+    headlineEs: `${yrs}+ años de experiencia  ·  10 empresas  ·  Solutions Architect  ·  AI Engineer`,
+    headlineEn: `${yrs}+ years of experience  ·  10 companies  ·  Solutions Architect  ·  AI Engineer`,
     email: "cdgutierrez6@gmail.com",
     phone: "320-617-4143",
     location: "Manizales, Caldas, Colombia",
