@@ -24,8 +24,8 @@ export async function generateStaticParams() {
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ?? "https://portafolio-frontend-wheat.vercel.app";
 
 const DESCRIPTIONS = {
-  en: "Solutions Architect & Senior Full-Stack Engineer with 15+ years building scalable microservices (.NET, Java, Node.js), high-performance web apps (Angular, React), and AI automation systems for enterprise clients.",
-  es: "Solutions Architect y Senior Full-Stack Engineer con más de 15 años construyendo microservicios escalables (.NET, Java, Node.js), aplicaciones web de alto rendimiento (Angular, React) y sistemas de automatización IA para clientes empresariales.",
+  en: "Solutions Architect & Senior Full-Stack Engineer with 13+ years building scalable microservices (.NET, Java, Node.js), high-performance web apps (Angular, React), and AI automation systems for enterprise clients.",
+  es: "Solutions Architect y Senior Full-Stack Engineer con más de 13 años construyendo microservicios escalables (.NET, Java, Node.js), aplicaciones web de alto rendimiento (Angular, React) y sistemas de automatización IA para clientes empresariales.",
 };
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
@@ -37,6 +37,7 @@ export async function generateMetadata({ params }: { params: { locale: string } 
   const pageTitle   = `${name} | ${title}`;
 
   return {
+    metadataBase: new URL(BASE_URL),
     title: pageTitle,
     description,
     keywords: ["Solutions Architect", "Senior Full-Stack Engineer", "Microservices", ".NET", "Java", "React", "Angular", "AI Automation", "Colombia"],
@@ -53,20 +54,13 @@ export async function generateMetadata({ params }: { params: { locale: string } 
       siteName: `${name} | Portfolio`,
       title: pageTitle,
       description,
-      images: [
-        {
-          url: `${BASE_URL}/og-image.png`,
-          width: 1200,
-          height: 630,
-          alt: pageTitle,
-        },
-      ],
+      // La imagen OG (1200×630) la genera dinámicamente `opengraph-image.tsx`
+      // con next/og — Next inyecta og:image y twitter:image automáticamente.
     },
     twitter: {
       card: "summary_large_image",
       title: pageTitle,
       description,
-      images: [`${BASE_URL}/og-image.png`],
     },
     robots: {
       index: true,
@@ -119,7 +113,6 @@ export default function LocaleLayout({
     <html lang={locale} className={archivo.variable}>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
         <style dangerouslySetInnerHTML={{ __html: cssVars }} />
         <script
           type="application/ld+json"

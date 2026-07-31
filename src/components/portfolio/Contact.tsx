@@ -6,7 +6,7 @@ import { useReveal } from "@/hooks/useReveal";
 
 interface Props {
   personal: { name: string; email: string; phone: string; location: string; githubUrl: string | null; linkedinUrl: string | null };
-  t: { contact: { title: string; send: string; name: string; message: string; subject: string; phone: string; location: string; email: string; placeholderName: string; placeholderEmail: string; placeholderSubject: string; placeholderMessage: string } };
+  t: { contact: { title: string; send: string; name: string; message: string; subject: string; phone: string; location: string; email: string; placeholderName: string; placeholderEmail: string; placeholderSubject: string; placeholderMessage: string; sending: string; sent: string; sendError: string; mailFallback: string; copy: string; copiedShort: string; copiedToast: string; copyFailed: string } };
   animated: boolean;
 }
 
@@ -30,7 +30,7 @@ export default function Contact({ personal, t, animated }: Props) {
       `?subject=${encodeURIComponent(`[Portafolio] ${form.subject}`)}` +
       `&body=${encodeURIComponent(body)}`;
     window.location.href = href;
-    toast("✉️ Abrimos tu correo con el mensaje listo para enviar", { duration: 5000 });
+    toast(t.contact.mailFallback, { duration: 5000 });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,7 +44,7 @@ export default function Contact({ personal, t, animated }: Props) {
       });
 
       if (res.ok) {
-        toast.success("✅ Mensaje enviado correctamente");
+        toast.success(t.contact.sent);
         setForm({ senderName: "", senderEmail: "", subject: "", message: "" });
         return;
       }
@@ -52,7 +52,7 @@ export default function Contact({ personal, t, animated }: Props) {
       // 400 (validación) y 429 (rate limit) son errores REALES del usuario: se muestran.
       if (res.status === 400 || res.status === 429) {
         const data = await res.json().catch(() => ({}));
-        toast.error(data.error ?? "❌ Error al enviar");
+        toast.error(data.error ?? t.contact.sendError);
         return;
       }
 
@@ -98,7 +98,7 @@ export default function Contact({ personal, t, animated }: Props) {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3rem", alignItems: "start" }} className="contact-grid">
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {contacts.map((c, i) => (
-              <ContactInfoCard key={c.label} contact={c} staggerIndex={i} animated={animated} />
+              <ContactInfoCard key={c.label} contact={c} staggerIndex={i} animated={animated} copyT={{ copy: t.contact.copy, copiedShort: t.contact.copiedShort, copiedToast: t.contact.copiedToast, copyFailed: t.contact.copyFailed }} />
             ))}
           </div>
           <div ref={formRef} className="card" style={{ padding: "2rem" }}>
@@ -121,7 +121,7 @@ export default function Contact({ personal, t, animated }: Props) {
                 <textarea className="admin-input" value={form.message} onChange={(e) => setForm(f => ({ ...f, message: e.target.value }))} required rows={5} placeholder={t.contact.placeholderMessage} style={{ resize: "vertical" }} />
               </div>
               <button type="submit" className={`btn-primary${animated && !sending ? " btn-shimmer" : ""}`} disabled={sending} style={{ justifyContent: "center", opacity: sending ? 0.7 : 1, cursor: sending ? "not-allowed" : "pointer" }}>
-                {sending ? "⏳ Enviando..." : `📤 ${t.contact.send}`}
+                {sending ? `⏳ ${t.contact.sending}` : `📤 ${t.contact.send}`}
               </button>
             </form>
           </div>
@@ -132,7 +132,7 @@ export default function Contact({ personal, t, animated }: Props) {
   );
 }
 
-function ContactInfoCard({ contact, staggerIndex, animated }: { contact: { icon: string; label: string; value: string; href: string | null; copy: boolean }; staggerIndex: number; animated: boolean }) {
+function ContactInfoCard({ contact, staggerIndex, animated, copyT }: { contact: { icon: string; label: string; value: string; href: string | null; copy: boolean }; staggerIndex: number; animated: boolean; copyT: { copy: string; copiedShort: string; copiedToast: string; copyFailed: string } }) {
   const [copied, setCopied] = useState(false);
   const ref = useReveal<HTMLDivElement>({ direction: "left", delay: staggerIndex * 80, threshold: 0.1, animated });
 
@@ -140,10 +140,10 @@ function ContactInfoCard({ contact, staggerIndex, animated }: { contact: { icon:
     try {
       await navigator.clipboard.writeText(contact.value);
       setCopied(true);
-      toast.success(`✅ ${contact.label} copiado`);
+      toast.success(`✅ ${contact.label} ${copyT.copiedToast}`);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error("No se pudo copiar");
+      toast.error(copyT.copyFailed);
     }
   };
 
@@ -156,7 +156,7 @@ function ContactInfoCard({ contact, staggerIndex, animated }: { contact: { icon:
       </div>
       {contact.copy && (
         <span style={{ fontSize: "0.7rem", opacity: copied ? 1 : 0.4, color: copied ? "var(--color-secondary)" : undefined, flexShrink: 0, transition: "opacity 0.2s" }}>
-          {copied ? "✓ Copiado" : "Copiar"}
+          {copied ? copyT.copiedShort : copyT.copy}
         </span>
       )}
     </>
