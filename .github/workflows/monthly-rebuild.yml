@@ -1,0 +1,39 @@
+name: Monthly rolling-date rebuild
+
+# Reconstruye el sitio el día 1 de cada mes para que las fechas "rodantes" se
+# recalculen solas: el fin de EfiziAI (hoy − 15 días) y los años de experiencia
+# se computan en tiempo de build, así que sin un rebuild periódico se quedarían
+# viejos entre despliegues. Ver src/lib/experience.ts.
+#
+# Requiere el secret VERCEL_DEPLOY_HOOK_URL:
+#   Vercel > proyecto portafolio-frontend > Settings > Git > Deploy Hooks
+#   > crear uno sobre la rama `master` > copiar la URL
+#   > GitHub repo > Settings > Secrets and variables > Actions > New secret
+#     con nombre VERCEL_DEPLOY_HOOK_URL y esa URL.
+# Solo hace un POST saliente, así que NO necesita permisos de escritura.
+
+on:
+  schedule:
+    - cron: "0 6 1 * *"   # día 1 de cada mes, 06:00 UTC (~01:00 Colombia)
+  workflow_dispatch: {}    # permite dispararlo a mano desde la pestaña Actions
+
+permissions:
+  contents: read
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel production rebuild
+        env:
+          HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "${HOOK_URL}" ]; then
+            echo "::warning::VERCEL_DEPLOY_HOOK_URL no está configurado — se omite el rebuild."
+            echo "Crea el Deploy Hook en Vercel (rama master) y añádelo como secret del repo."
+            exit 0
+          fi
+          echo "Disparando rebuild de producción en Vercel…"
+          curl -fsS -X POST "${HOOK_URL}"
+          echo ""
+          echo "OK — Vercel está reconstruyendo master; las fechas rodantes se recalculan."
