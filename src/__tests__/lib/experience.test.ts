@@ -4,7 +4,7 @@
  * las superficies (CV, portafolio, GitHub, LinkedIn). Su fórmula —abr-2012 menos
  * 7 meses, es decir desde nov-2012— es un invariante frágil: se prueba (REGLA #9).
  */
-import { yearsOfExperience, yearsOfExperienceLabel, EXPERIENCE_START } from "@/lib/experience";
+import { yearsOfExperience, yearsOfExperienceLabel, EXPERIENCE_START, rollingEndDate } from "@/lib/experience";
 
 describe("yearsOfExperience — conteo dinámico", () => {
   it("da 13 al 30-jul-2026", () => {
@@ -30,5 +30,25 @@ describe("yearsOfExperience — conteo dinámico", () => {
   it("el inicio efectivo es nov-2012 (abr-2012 + 7 meses)", () => {
     expect(EXPERIENCE_START.getFullYear()).toBe(2012);
     expect(EXPERIENCE_START.getMonth()).toBe(10);
+  });
+});
+
+describe("rollingEndDate — fin rodante de EfiziAI (hoy − 15 días)", () => {
+  it("el 30-jul-2026 da 'Jul 2026' en ES y EN", () => {
+    const r = rollingEndDate(new Date(2026, 6, 30));
+    expect(r.es).toBe("Jul 2026");
+    expect(r.en).toBe("Jul 2026");
+  });
+
+  it("resta 15 días: el 10-ago-2026 aún cae en julio", () => {
+    const r = rollingEndDate(new Date(2026, 7, 10));
+    expect(r.es).toBe("Jul 2026");
+    expect(r.en).toBe("Jul 2026");
+  });
+
+  it("usa meses localizados (Ago vs Aug) el 1-sep-2026", () => {
+    const r = rollingEndDate(new Date(2026, 8, 1));
+    expect(r.es).toBe("Ago 2026");
+    expect(r.en).toBe("Aug 2026");
   });
 });
